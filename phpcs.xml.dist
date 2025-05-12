@@ -15,6 +15,16 @@
     <file>public/</file>
     <file>src/</file>
     <file>tests/</file>
-    <rule ref="Doctrine"></rule>
+    <rule ref="Doctrine">
+        <exclude name="SlevomatCodingStandard.TypeHints.UnionTypeHintFormat"/>
+        <exclude name="Squiz.WhiteSpace.LanguageConstructSpacing"/>
+        <exclude name="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly"/>
+        <exclude name="SlevomatCodingStandard.ControlStructures.EarlyExit"/>
+        <exclude name="Generic.Formatting.MultipleStatementAlignment"/>
+    </rule>
+
+    <rule name="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly">
+        <exclude-pattern>/config</exclude-pattern>
+    </rule>
 
 </ruleset>

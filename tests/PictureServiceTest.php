@@ -7,9 +7,7 @@ namespace App\Tests;
 use App\Document\File;
 use App\Document\Picture;
 use App\Service\PictureService;
-use DateTime;
 use Doctrine\ODM\MongoDB\DocumentManager;
-use Doctrine\Persistence\ObjectRepository;
 use PHPUnit\Framework\TestCase;
 
 use function file_put_contents;
@@ -40,12 +38,13 @@ class PictureServiceTest extends TestCase
     {
         parent::tearDown();
 
-
         $tempFiles = glob(sys_get_temp_dir() . '/test_image*');
         foreach ($tempFiles as $file) {
-            if (is_file($file)) {
-                unlink($file);
+            if (! is_file($file)) {
+                continue;
             }
+
+            unlink($file);
         }
     }
 
@@ -64,7 +63,7 @@ class PictureServiceTest extends TestCase
         $this->documentManagerMock
             ->expects($this->exactly(2))
             ->method('persist')
-            ->with($this->callback(function ($object) use ($originalName) {
+            ->with($this->callback(static function ($object) use ($originalName) {
                 static $callCount = 0;
                 $callCount++;
 

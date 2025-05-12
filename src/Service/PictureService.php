@@ -6,7 +6,6 @@ namespace App\Service;
 
 use App\Document\File;
 use App\Document\Picture;
-use DateTime;
 use Doctrine\ODM\MongoDB\DocumentManager;
 
 use function file_get_contents;
@@ -31,7 +30,7 @@ class PictureService
         $file->content = $fileContent; // Add a `content` field to the File document if needed
 
         // Assign a mock ID for testing purposes if not already set
-        if (!$file->id) {
+        if (! $file->id) {
             $file->id = uniqid();
         }
 

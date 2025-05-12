@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Document;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
-use App\Document\File;
 
-#[ODM\Document(collection: "pictures")]
+#[ODM\Document(collection: 'pictures')]
 class Picture
 {
     #[ODM\Id]
@@ -20,10 +21,10 @@ class Picture
     #[ODM\Field]
     public ?string $name = null;
 
-    #[ODM\Field(type: "string")]
+    #[ODM\Field(type: 'string')]
     public ?string $description = null;
 
-    #[ODM\Field(type: "collection")]
+    #[ODM\Field(type: 'collection')]
     public ?array $embeddings = null;
 
     #[ODM\ReferenceOne(targetDocument: File::class, cascade: ['persist', 'remove'])]
