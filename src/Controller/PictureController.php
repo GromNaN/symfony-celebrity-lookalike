@@ -27,9 +27,6 @@ class PictureController extends AbstractController
         // Store the image and create a Picture document
         $picture = $this->pictureService->storePicture($file->getPathname(), $file->getClientOriginalName());
 
-        // Save the Picture document
-        $this->pictureService->savePicture($picture);
-
         // Find matches based on embeddings
         $matches = $this->pictureService->findSimilarPictures($picture->embeddings);
 

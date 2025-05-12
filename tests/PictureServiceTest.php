@@ -6,8 +6,6 @@ use App\Document\Picture;
 use App\Service\PictureService;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\MockObject\MockObject; // Import MockObject explicitly
-use Doctrine\ODM\MongoDB\Repository\DocumentRepository; // Import DocumentRepository
 use App\Document\File; // Import File document
 
 class PictureServiceTest extends TestCase
