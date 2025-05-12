@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
-use App\Document\Picture;
 use App\Service\PictureService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,22 +21,19 @@ class PictureController extends AbstractController
     {
         $file = $request->files->get('picture');
 
-        if (!$file) {
+        if (! $file) {
             return $this->json(['error' => 'No file uploaded'], Response::HTTP_BAD_REQUEST);
         }
 
         // Store the image and create a Picture document
         $picture = $this->pictureService->storePicture($file->getPathname(), $file->getClientOriginalName());
 
-        // Save the Picture document
-        $this->pictureService->savePicture($picture);
-
         // Find matches based on embeddings
         $matches = $this->pictureService->findSimilarPictures($picture->embeddings);
 
         return $this->json([
             'message' => 'Picture processed successfully',
-            'matches' => $matches
+            'matches' => $matches,
         ]);
     }
 }

@@ -1,14 +1,21 @@
 <?php
 
-namespace App\Tests; // Fix namespace to align with PSR-4 standards
+declare(strict_types=1);
 
+namespace App\Tests;
+
+use App\Document\File;
 use App\Document\Picture;
 use App\Service\PictureService;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\MockObject\MockObject; // Import MockObject explicitly
-use Doctrine\ODM\MongoDB\Repository\DocumentRepository; // Import DocumentRepository
-use App\Document\File; // Import File document
+
+use function file_put_contents;
+use function glob;
+use function is_file;
+use function sys_get_temp_dir;
+use function tempnam;
+use function unlink;
 
 class PictureServiceTest extends TestCase
 {
@@ -17,14 +24,13 @@ class PictureServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        // Mock the DocumentManager
         $this->documentManagerMock = $this->getMockBuilder(DocumentManager::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['persist', 'flush', 'getRepository'])
             ->getMock();
 
         $this->pictureService = new PictureService(
-            $this->documentManagerMock
+            $this->documentManagerMock,
         );
     }
 
@@ -32,12 +38,13 @@ class PictureServiceTest extends TestCase
     {
         parent::tearDown();
 
-        // Clean up temporary files created during tests
         $tempFiles = glob(sys_get_temp_dir() . '/test_image*');
         foreach ($tempFiles as $file) {
-            if (is_file($file)) {
-                unlink($file);
+            if (! is_file($file)) {
+                continue;
             }
+
+            unlink($file);
         }
     }
 
@@ -49,14 +56,14 @@ class PictureServiceTest extends TestCase
         $fileId = 'mockFileId';
 
         $file = new File();
-        $file->id = 'mockFileId'; // Set a mock ID for the File document
+        $file->id = 'mockFileId';
         $file->filename = $originalName;
         $file->uploadDate = new \DateTime();
 
         $this->documentManagerMock
             ->expects($this->exactly(2))
             ->method('persist')
-            ->with($this->callback(function ($object) use ($originalName) {
+            ->with($this->callback(static function ($object) use ($originalName) {
                 static $callCount = 0;
                 $callCount++;
 
@@ -78,7 +85,7 @@ class PictureServiceTest extends TestCase
         $picture = $this->pictureService->storePicture($filePath, $originalName);
 
         $this->assertInstanceOf(Picture::class, $picture);
-        $this->assertNotEmpty($picture->fileId); // Assert that the fileId is not empty instead of comparing to a specific value
+        $this->assertNotEmpty($picture->fileId);
         $this->assertNotEmpty($picture->resizedImage);
         $this->assertNotEmpty($picture->description);
         $this->assertNotEmpty($picture->embeddings);
@@ -109,7 +116,7 @@ class PictureServiceTest extends TestCase
             ->expects($this->once())
             ->method('calculateSimilarity')
             ->with($embeddings, $pictureMock->embeddings)
-            ->willReturn(0.9); // Mock similarity above the threshold
+            ->willReturn(0.9);
 
         $this->documentManagerMock
             ->expects($this->once())
@@ -123,7 +130,6 @@ class PictureServiceTest extends TestCase
         $matches = $this->pictureService->findSimilarPictures($picture, $threshold);
 
         $this->assertNotEmpty($matches);
-        $this->assertEquals('mockId', $matches[0]['id']);
-        $this->assertEquals('mockDescription', $matches[0]['description']);
+        $this->assertEquals($pictureMock, $matches[0]['picture']);
     }
 }

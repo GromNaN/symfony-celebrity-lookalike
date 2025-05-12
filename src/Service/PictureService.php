@@ -1,10 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
-use App\Document\Picture;
 use App\Document\File;
+use App\Document\Picture;
 use Doctrine\ODM\MongoDB\DocumentManager;
+
+use function file_get_contents;
+use function rand;
+use function uniqid;
 
 class PictureService
 {
@@ -24,7 +30,7 @@ class PictureService
         $file->content = $fileContent; // Add a `content` field to the File document if needed
 
         // Assign a mock ID for testing purposes if not already set
-        if (!$file->id) {
+        if (! $file->id) {
             $file->id = uniqid();
         }
 
@@ -48,6 +54,11 @@ class PictureService
         return $picture;
     }
 
+    /**
+     * @param string $imageData Image file
+     *
+     * @return array{0: string, 1: float[]}
+     */
     public function generateDescriptionAndEmbeddings(string $imageData): array
     {
         // Placeholder logic for AI integration
@@ -57,12 +68,17 @@ class PictureService
         return [$description, $embeddings];
     }
 
+    /**
+     * @param float[] $embeddings1
+     * @param float[] $embeddings2
+     */
     public function calculateSimilarity(array $embeddings1, array $embeddings2): float
     {
         // Placeholder logic for calculating similarity (e.g., cosine similarity)
         return rand(0, 100) / 100; // Random similarity for now
     }
 
+    /** @return array{picture: Picture, similarity: float} */
     public function findSimilarPictures(Picture $picture, float $threshold = 0.8): array
     {
         $pictures = $this->dm->getRepository(Picture::class)->findAll();
@@ -72,8 +88,7 @@ class PictureService
             $similarity = $this->calculateSimilarity($picture->embeddings, $storedPicture->embeddings);
             if ($similarity >= $threshold) {
                 $matches[] = [
-                    'id' => $storedPicture->id,
-                    'description' => $storedPicture->description,
+                    'picture' => $storedPicture,
                     'similarity' => $similarity,
                 ];
             }
