@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
-use App\Document\Picture;
 use App\Service\PictureService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,7 +21,7 @@ class PictureController extends AbstractController
     {
         $file = $request->files->get('picture');
 
-        if (!$file) {
+        if (! $file) {
             return $this->json(['error' => 'No file uploaded'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -32,7 +33,7 @@ class PictureController extends AbstractController
 
         return $this->json([
             'message' => 'Picture processed successfully',
-            'matches' => $matches
+            'matches' => $matches,
         ]);
     }
 }

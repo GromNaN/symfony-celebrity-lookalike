@@ -1,12 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Tests;
 
+use App\Document\File;
 use App\Document\Picture;
 use App\Service\PictureService;
+use DateTime;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Doctrine\Persistence\ObjectRepository;
 use PHPUnit\Framework\TestCase;
-use App\Document\File;
+
+use function file_put_contents;
+use function glob;
+use function is_file;
+use function sys_get_temp_dir;
+use function tempnam;
+use function unlink;
 
 class PictureServiceTest extends TestCase
 {
@@ -15,14 +26,13 @@ class PictureServiceTest extends TestCase
 
     protected function setUp(): void
     {
-
         $this->documentManagerMock = $this->getMockBuilder(DocumentManager::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['persist', 'flush', 'getRepository'])
             ->getMock();
 
         $this->pictureService = new PictureService(
-            $this->documentManagerMock
+            $this->documentManagerMock,
         );
     }
 

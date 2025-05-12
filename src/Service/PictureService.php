@@ -1,10 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
-use App\Document\Picture;
 use App\Document\File;
+use App\Document\Picture;
+use DateTime;
 use Doctrine\ODM\MongoDB\DocumentManager;
+
+use function file_get_contents;
+use function rand;
+use function uniqid;
 
 class PictureService
 {
