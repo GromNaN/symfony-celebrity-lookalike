@@ -8,7 +8,7 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 class File
 {
     #[ODM\Id]
-    public string $id;
+    public ?string $id = null;
 
     #[ODM\Field(type: "string")]
     public string $filename;
