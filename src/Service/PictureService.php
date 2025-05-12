@@ -3,20 +3,26 @@
 namespace App\Service;
 
 use App\Document\Picture;
+use App\Document\File;
 use Doctrine\ODM\MongoDB\DocumentManager;
-use MongoDB\GridFS\Bucket;
+use Doctrine\ODM\MongoDB\Repository\DocumentRepository;
 
 class PictureService
 {
-    public function __construct(private Bucket $gridFsBucket, private DocumentManager $dm)
+    public function __construct(private DocumentManager $dm)
     {
     }
 
     public function storePicture(string $filePath, string $originalName): Picture
     {
-        // Store the image in GridFS
+        // Create a new File document
+        $file = new File();
+        $file->filename = $originalName;
+        $file->uploadDate = new \DateTime();
+
+        // Store the file in GridFS
         $stream = fopen($filePath, 'rb');
-        $fileId = $this->gridFsBucket->uploadFromStream($originalName, $stream);
+        $this->dm->getRepository(File::class)->uploadFromStream($file, $stream);
         fclose($stream);
 
         // Generate description and embeddings
@@ -25,7 +31,7 @@ class PictureService
 
         // Create a new Picture document
         $picture = new Picture();
-        $picture->fileId = (string) $fileId;
+        $picture->file = $file;
         $picture->resizedImage = $imageData;
         $picture->description = $description;
         $picture->embeddings = $embeddings;
