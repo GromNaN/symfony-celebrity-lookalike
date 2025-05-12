@@ -130,7 +130,6 @@ class PictureServiceTest extends TestCase
         $matches = $this->pictureService->findSimilarPictures($picture, $threshold);
 
         $this->assertNotEmpty($matches);
-        $this->assertEquals('mockId', $matches[0]['id']);
-        $this->assertEquals('mockDescription', $matches[0]['description']);
+        $this->assertEquals($pictureMock, $matches[0]['picture']);
     }
 }

@@ -13,17 +13,12 @@ class Picture
     public ?string $id = null;
 
     #[ODM\Field]
-    public ?string $fileId = null;
-
-    #[ODM\Field]
-    public ?array $vector = null;
-
-    #[ODM\Field]
     public ?string $name = null;
 
     #[ODM\Field(type: 'string')]
     public ?string $description = null;
 
+    /** @var float[] */
     #[ODM\Field(type: 'collection')]
     public ?array $embeddings = null;
 

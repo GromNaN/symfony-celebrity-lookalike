@@ -54,6 +54,11 @@ class PictureService
         return $picture;
     }
 
+    /**
+     * @param string $imageData Image file
+     *
+     * @return array{0: string, 1: float[]}
+     */
     public function generateDescriptionAndEmbeddings(string $imageData): array
     {
         // Placeholder logic for AI integration
@@ -63,12 +68,17 @@ class PictureService
         return [$description, $embeddings];
     }
 
+    /**
+     * @param float[] $embeddings1
+     * @param float[] $embeddings2
+     */
     public function calculateSimilarity(array $embeddings1, array $embeddings2): float
     {
         // Placeholder logic for calculating similarity (e.g., cosine similarity)
         return rand(0, 100) / 100; // Random similarity for now
     }
 
+    /** @return array{picture: Picture, similarity: float} */
     public function findSimilarPictures(Picture $picture, float $threshold = 0.8): array
     {
         $pictures = $this->dm->getRepository(Picture::class)->findAll();
@@ -78,8 +88,7 @@ class PictureService
             $similarity = $this->calculateSimilarity($picture->embeddings, $storedPicture->embeddings);
             if ($similarity >= $threshold) {
                 $matches[] = [
-                    'id' => $storedPicture->id,
-                    'description' => $storedPicture->description,
+                    'picture' => $storedPicture,
                     'similarity' => $similarity,
                 ];
             }
