@@ -14,7 +14,7 @@ jobs:
 
     services:
       mongodb:
-        image: mongo:5.0
+        image: mongodb/mongodb-atlas-local:8
         ports:
           - 27017:27017
 
@@ -26,14 +26,9 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
-          extensions: mbstring, intl, mongodb
-          ini-values: post_max_size=256M, upload_max_filesize=256M
-          coverage: none
-
-      - name: Install correct ext-mongodb version
-        run: |
-          sudo pecl uninstall mongodb
-          sudo pecl install mongodb-2.0.0
+          extensions: curl,mbstring,intl,mongodb,xdebug
+          tools: composer
+          coverage: xdebug
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-suggest
