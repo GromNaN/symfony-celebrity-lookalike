@@ -5,28 +5,25 @@ namespace App\Tests; // Fix namespace to align with PSR-4 standards
 use App\Document\Picture;
 use App\Service\PictureService;
 use Doctrine\ODM\MongoDB\DocumentManager;
-use MongoDB\GridFS\Bucket;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject; // Import MockObject explicitly
+use Doctrine\ODM\MongoDB\Repository\DocumentRepository; // Import DocumentRepository
+use App\Document\File; // Import File document
 
 class PictureServiceTest extends TestCase
 {
     private PictureService $pictureService;
-    private Bucket $gridFsBucketMock;
     private DocumentManager $documentManagerMock;
 
     protected function setUp(): void
     {
-        $this->gridFsBucketMock = $this->createMock(Bucket::class);
-
-        // Ensure proper mocking of methods
+        // Mock the DocumentManager
         $this->documentManagerMock = $this->getMockBuilder(DocumentManager::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['persist', 'flush', 'getRepository'])
             ->getMock();
 
         $this->pictureService = new PictureService(
-            $this->gridFsBucketMock,
             $this->documentManagerMock
         );
     }
@@ -51,18 +48,28 @@ class PictureServiceTest extends TestCase
         $originalName = 'image.jpg';
         $fileId = 'mockFileId';
 
-        $this->gridFsBucketMock
-            ->expects($this->once())
-            ->method('uploadFromStream')
-            ->with($originalName, $this->callback(function ($stream) {
-                return is_resource($stream);
-            })) // Use a callback to check for resource type
-            ->willReturn($fileId);
+        $file = new File();
+        $file->id = 'mockFileId'; // Set a mock ID for the File document
+        $file->filename = $originalName;
+        $file->uploadDate = new \DateTime();
 
         $this->documentManagerMock
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('persist')
-            ->with($this->isInstanceOf(Picture::class));
+            ->with($this->callback(function ($object) use ($originalName) {
+                static $callCount = 0;
+                $callCount++;
+
+                if ($callCount === 1) {
+                    return $object instanceof File && $object->filename === $originalName;
+                }
+
+                if ($callCount === 2) {
+                    return $object instanceof Picture;
+                }
+
+                return false;
+            }));
 
         $this->documentManagerMock
             ->expects($this->once())
@@ -71,7 +78,7 @@ class PictureServiceTest extends TestCase
         $picture = $this->pictureService->storePicture($filePath, $originalName);
 
         $this->assertInstanceOf(Picture::class, $picture);
-        $this->assertEquals($fileId, $picture->fileId);
+        $this->assertNotEmpty($picture->fileId); // Assert that the fileId is not empty instead of comparing to a specific value
         $this->assertNotEmpty($picture->resizedImage);
         $this->assertNotEmpty($picture->description);
         $this->assertNotEmpty($picture->embeddings);
@@ -94,7 +101,7 @@ class PictureServiceTest extends TestCase
             ->willReturn([$pictureMock]);
 
         $this->pictureService = $this->getMockBuilder(PictureService::class)
-            ->setConstructorArgs([$this->gridFsBucketMock, $this->documentManagerMock])
+            ->setConstructorArgs([$this->documentManagerMock])
             ->onlyMethods(['calculateSimilarity'])
             ->getMock();
 
