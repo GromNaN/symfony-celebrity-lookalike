@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Tests; // Fix namespace to align with PSR-4 standards
+namespace App\Tests;
 
 use App\Document\Picture;
 use App\Service\PictureService;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use PHPUnit\Framework\TestCase;
-use App\Document\File; // Import File document
+use App\Document\File;
 
 class PictureServiceTest extends TestCase
 {
@@ -15,7 +15,7 @@ class PictureServiceTest extends TestCase
 
     protected function setUp(): void
     {
-        // Mock the DocumentManager
+
         $this->documentManagerMock = $this->getMockBuilder(DocumentManager::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['persist', 'flush', 'getRepository'])
@@ -30,7 +30,7 @@ class PictureServiceTest extends TestCase
     {
         parent::tearDown();
 
-        // Clean up temporary files created during tests
+
         $tempFiles = glob(sys_get_temp_dir() . '/test_image*');
         foreach ($tempFiles as $file) {
             if (is_file($file)) {
@@ -47,7 +47,7 @@ class PictureServiceTest extends TestCase
         $fileId = 'mockFileId';
 
         $file = new File();
-        $file->id = 'mockFileId'; // Set a mock ID for the File document
+        $file->id = 'mockFileId';
         $file->filename = $originalName;
         $file->uploadDate = new \DateTime();
 
@@ -76,7 +76,7 @@ class PictureServiceTest extends TestCase
         $picture = $this->pictureService->storePicture($filePath, $originalName);
 
         $this->assertInstanceOf(Picture::class, $picture);
-        $this->assertNotEmpty($picture->fileId); // Assert that the fileId is not empty instead of comparing to a specific value
+        $this->assertNotEmpty($picture->fileId);
         $this->assertNotEmpty($picture->resizedImage);
         $this->assertNotEmpty($picture->description);
         $this->assertNotEmpty($picture->embeddings);
@@ -107,7 +107,7 @@ class PictureServiceTest extends TestCase
             ->expects($this->once())
             ->method('calculateSimilarity')
             ->with($embeddings, $pictureMock->embeddings)
-            ->willReturn(0.9); // Mock similarity above the threshold
+            ->willReturn(0.9);
 
         $this->documentManagerMock
             ->expects($this->once())
