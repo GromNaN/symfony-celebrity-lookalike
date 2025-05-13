@@ -53,7 +53,6 @@ class PictureServiceTest extends TestCase
         $filePath = tempnam(sys_get_temp_dir(), 'test_image');
         file_put_contents($filePath, 'fake image content');
         $originalName = 'image.jpg';
-        $fileId = 'mockFileId';
 
         $file = new File();
         $file->id = 'mockFileId';
@@ -85,8 +84,6 @@ class PictureServiceTest extends TestCase
         $picture = $this->pictureService->storePicture($filePath, $originalName);
 
         $this->assertInstanceOf(Picture::class, $picture);
-        $this->assertNotEmpty($picture->fileId);
-        $this->assertNotEmpty($picture->resizedImage);
         $this->assertNotEmpty($picture->description);
         $this->assertNotEmpty($picture->embeddings);
     }

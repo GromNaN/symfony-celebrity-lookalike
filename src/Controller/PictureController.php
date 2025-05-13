@@ -29,7 +29,7 @@ class PictureController extends AbstractController
         $picture = $this->pictureService->storePicture($file->getPathname(), $file->getClientOriginalName());
 
         // Find matches based on embeddings
-        $matches = $this->pictureService->findSimilarPictures($picture->embeddings);
+        $matches = $this->pictureService->findSimilarPictures($picture);
 
         return $this->json([
             'message' => 'Picture processed successfully',
