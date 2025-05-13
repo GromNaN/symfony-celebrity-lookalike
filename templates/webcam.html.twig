@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webcam Photo Capture - MongoDB Style</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- MongoDB uses Euclid Circular A font, but we'll use Inter as a close alternative -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <style>
+        :root {
+            --mongodb-green: #00ED64;
+            --mongodb-dark-green: #001E2B;
+            --mongodb-forest-green: #023430;
+            --mongodb-dark-blue: #0C2E3C;
+            --mongodb-light-green: #E3FCF7;
+            --mongodb-gray: #F9FBFA;
+            --mongodb-text: #89979B;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: var(--mongodb-dark-green);
+            font-family: 'Inter', sans-serif;
+        }
+        .app-container {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            width: 40%;
+            min-width: 400px;
+            max-width: 800px;
+            max-height: 95vh;
+            display: flex;
+            flex-direction: column;
+            border-radius: 16px;
+            overflow: visible;
+            position: relative;
+        }
+        .content-area {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .camera-container, .preview-container {
+            aspect-ratio: 4/3;
+            flex: 1;
+            max-height: 60vh;
+            overflow: hidden;
+            border: 1px solid #E8EDEB;
+        }
+        .similar-image {
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            border: 1px solid #E8EDEB;
+        }
+        .btn-primary {
+            background: var(--mongodb-green);
+            color: var(--mongodb-dark-green);
+            transition: all 0.2s ease;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 237, 100, 0.3);
+            background: #00ff6a;
+        }
+        .btn-secondary {
+            background: #16A085;
+            color: white;
+            font-weight: 600;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(22, 160, 133, 0.3);
+        }
+        .similar-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            max-height: 40vh;
+            overflow-y: auto;
+        }
+        .mongodb-header {
+            background-color: var(--mongodb-dark-green);
+            color: white;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: none;
+            position: relative;
+            z-index: 10;
+        }
+        .mongodb-logo {
+            height: 30px;
+        }
+        .mongodb-footer {
+            background-color: var(--mongodb-gray);
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
+            border: 1px solid #E8EDEB;
+            border-top: none;
+        }
+        .mongodb-content {
+            border-left: 1px solid #E8EDEB;
+            border-right: 1px solid #E8EDEB;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="container shadow-2xl">
+        <div class="mongodb-header flex items-center justify-between px-6 py-4">
+            <div class="flex items-center">
+                <!-- More accurate MongoDB leaf logo -->
+                <svg class="mongodb-logo mr-3" viewBox="0 0 192 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M46.1409 12.0804C43.5722 4.98291 37.4025 2.40861 36.6249 1.23669C35.8473 0.0647659 35.0697 0 35.0697 0C35.0697 0.388659 35.0697 2.40861 35.0697 2.79727C35.0697 3.18593 33.5144 11.1744 27.3447 13.0804C21.175 14.9864 19.6197 20.1782 19.6197 20.9429C19.6197 21.7077 21.175 30.7684 30.1358 32.6744C39.0967 34.5804 40.652 41.3354 40.652 41.3354C40.652 41.3354 41.4296 34.1917 42.2072 32.6744C42.9848 31.1571 46.1409 28.4741 46.1409 28.4741C46.1409 28.4741 48.7097 20.1782 46.1409 12.0804Z" fill="#00ED64"/>
+                    <path d="M61.5 31.5H57.5V16.5H61.5V31.5Z" fill="white"/>
+                    <path d="M59.5 14.5C58.4 14.5 57.5 13.6 57.5 12.5C57.5 11.4 58.4 10.5 59.5 10.5C60.6 10.5 61.5 11.4 61.5 12.5C61.5 13.6 60.6 14.5 59.5 14.5Z" fill="white"/>
+                    <path d="M82.5 31.5H78.5V23.5C78.5 21.5 77.5 20.5 76 20.5C74.3 20.5 73 21.8 73 24V31.5H69V16.5H73V18.2C73.9 17 75.5 16.2 77.3 16.2C80.4 16.2 82.5 18.3 82.5 22V31.5Z" fill="white"/>
+                    <path d="M92.5 31.8C88.1 31.8 85 28.6 85 24C85 19.4 88.1 16.2 92.5 16.2C96.9 16.2 100 19.4 100 24C100 28.6 96.9 31.8 92.5 31.8ZM92.5 28.5C94.4 28.5 96 26.8 96 24C96 21.2 94.4 19.5 92.5 19.5C90.6 19.5 89 21.2 89 24C89 26.8 90.6 28.5 92.5 28.5Z" fill="white"/>
+                    <path d="M110.5 31.8C106.1 31.8 103 28.6 103 24C103 19.4 106.1 16.2 110.5 16.2C114.9 16.2 118 19.4 118 24C118 28.6 114.9 31.8 110.5 31.8ZM110.5 28.5C112.4 28.5 114 26.8 114 24C114 21.2 112.4 19.5 110.5 19.5C108.6 19.5 107 21.2 107 24C107 26.8 108.6 28.5 110.5 28.5Z" fill="white"/>
+                    <path d="M129.5 16.5H133.5V31.5H129.5V29.8C128.6 31 127 31.8 125.2 31.8C122.1 31.8 120 29.7 120 26V16.5H124V24.5C124 26.5 125 27.5 126.5 27.5C128.2 27.5 129.5 26.2 129.5 24V16.5Z" fill="white"/>
+                    <path d="M147.5 16.5H151.5V31.5H147.5V29.8C146.6 31 145 31.8 143.2 31.8C140.1 31.8 138 29.7 138 26V16.5H142V24.5C142 26.5 143 27.5 144.5 27.5C146.2 27.5 147.5 26.2 147.5 24V16.5Z" fill="white"/>
+                    <path d="M162.5 31.8C158.1 31.8 155 28.6 155 24C155 19.4 158.1 16.2 162.5 16.2C166.9 16.2 170 19.4 170 24C170 28.6 166.9 31.8 162.5 31.8ZM162.5 28.5C164.4 28.5 166 26.8 166 24C166 21.2 164.4 19.5 162.5 19.5C160.6 19.5 159 21.2 159 24C159 26.8 160.6 28.5 162.5 28.5Z" fill="white"/>
+                    <path d="M180.5 31.8C176.1 31.8 173 28.6 173 24C173 19.4 176.1 16.2 180.5 16.2C183.5 16.2 186.1 17.8 187.2 20.5L183.7 21.8C183.2 20.4 182 19.5 180.5 19.5C178.6 19.5 177 21.2 177 24C177 26.8 178.6 28.5 180.5 28.5C182 28.5 183.2 27.6 183.7 26.2L187.2 27.5C186.1 30.2 183.5 31.8 180.5 31.8Z" fill="white"/>
+                </svg>
+                <h1 class="text-xl font-bold">Photo Capture</h1>
+            </div>
+            <div class="text-sm text-[#89979B]">MongoDB Atlas</div>
+        </div>
+
+        <div class="content-area px-6 py-4 bg-white mongodb-content">
+            <!-- Camera View -->
+            <div id="camera-view" class="camera-container bg-[#F9FBFA] rounded-lg mb-4">
+                <video id="video" class="w-full h-full object-cover rounded-lg" autoplay></video>
+            </div>
+
+            <!-- Preview View (Initially Hidden) -->
+            <div id="preview-view" class="preview-container bg-[#F9FBFA] rounded-lg mb-4 hidden">
+                <canvas id="canvas" class="w-full h-full object-cover rounded-lg"></canvas>
+            </div>
+
+            <!-- Similar Images View (Initially Hidden) -->
+            <div id="similar-view" class="hidden mb-4">
+                <h2 class="text-lg font-semibold mb-3 text-[#001E2B]">Similar Images</h2>
+                <div class="similar-grid">
+                    <div class="similar-image bg-[#F9FBFA] rounded-lg overflow-hidden">
+                        <svg class="w-full h-full text-[#E8EDEB]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div class="similar-image bg-[#F9FBFA] rounded-lg overflow-hidden">
+                        <svg class="w-full h-full text-[#E8EDEB]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div class="similar-image bg-[#F9FBFA] rounded-lg overflow-hidden">
+                        <svg class="w-full h-full text-[#E8EDEB]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div class="similar-image bg-[#F9FBFA] rounded-lg overflow-hidden">
+                        <svg class="w-full h-full text-[#E8EDEB]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div class="similar-image bg-[#F9FBFA] rounded-lg overflow-hidden">
+                        <svg class="w-full h-full text-[#E8EDEB]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div class="similar-image bg-[#F9FBFA] rounded-lg overflow-hidden">
+                        <svg class="w-full h-full text-[#E8EDEB]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="mongodb-footer flex justify-center py-4 space-x-3 px-6">
+            <button id="capture-btn" class="btn-primary font-bold py-2 px-5 rounded-md shadow-sm flex items-center text-sm">
+                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Take Photo
+            </button>
+            <button id="retake-btn" class="hidden btn-primary font-bold py-2 px-5 rounded-md shadow-sm flex items-center text-sm">
+                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Retake
+            </button>
+            <button id="validate-btn" class="hidden btn-secondary font-bold py-2 px-5 rounded-md shadow-sm flex items-center text-sm">
+                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Validate
+            </button>
+            <button id="new-photo-btn" class="hidden btn-primary font-bold py-2 px-5 rounded-md shadow-sm flex items-center text-sm">
+                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                New Photo
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('capture-btn');
+        const retakeBtn = document.getElementById('retake-btn');
+        const validateBtn = document.getElementById('validate-btn');
+        const newPhotoBtn = document.getElementById('new-photo-btn');
+        const cameraView = document.getElementById('camera-view');
+        const previewView = document.getElementById('preview-view');
+        const similarView = document.getElementById('similar-view');
+
+        let stream = null;
+
+        // Start webcam
+        async function startWebcam() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error('Error accessing webcam:', err);
+                alert('Error accessing webcam. Please make sure you have a webcam connected and have granted permission to use it.');
+            }
+        }
+
+        // Initialize webcam
+        startWebcam();
+
+        // Capture photo
+        captureBtn.addEventListener('click', () => {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Show preview and buttons
+            cameraView.classList.add('hidden');
+            previewView.classList.remove('hidden');
+            captureBtn.classList.add('hidden');
+            retakeBtn.classList.remove('hidden');
+            validateBtn.classList.remove('hidden');
+        });
+
+        // Retake photo
+        retakeBtn.addEventListener('click', () => {
+            cameraView.classList.remove('hidden');
+            previewView.classList.add('hidden');
+            captureBtn.classList.remove('hidden');
+            retakeBtn.classList.add('hidden');
+            validateBtn.classList.add('hidden');
+        });
+
+        // Validate photo
+        validateBtn.addEventListener('click', () => {
+            // Show similar images
+            previewView.classList.remove('hidden');
+            similarView.classList.remove('hidden');
+            retakeBtn.classList.add('hidden');
+            validateBtn.classList.add('hidden');
+            newPhotoBtn.classList.remove('hidden');
+
+            // Add animation to similar images
+            const similarImages = document.querySelectorAll('.similar-image');
+            similarImages.forEach((img, index) => {
+                img.style.animation = `fadeIn 0.5s ease ${index * 0.1}s forwards`;
+                img.style.opacity = '0';
+            });
+        });
+
+        // New photo
+        newPhotoBtn.addEventListener('click', () => {
+            cameraView.classList.remove('hidden');
+            previewView.classList.add('hidden');
+            similarView.classList.add('hidden');
+            captureBtn.classList.remove('hidden');
+            newPhotoBtn.classList.add('hidden');
+        });
+
+        // Add animation keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            `;
+        document.head.appendChild(style);
+
+        // Ensure canvas is properly sized
+        function resizeCanvas() {
+            if (canvas.width > 0 && canvas.height > 0) {
+                const context = canvas.getContext('2d');
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                canvas.width = previewView.clientWidth;
+                canvas.height = previewView.clientHeight;
+                context.putImageData(imageData, 0, 0);
+            }
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+        });
+    });
+</script>
+</body>
+</html>

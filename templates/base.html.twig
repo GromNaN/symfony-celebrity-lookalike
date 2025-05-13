@@ -2,15 +2,117 @@
 <html>
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{% block title %}Welcome!{% endblock %}</title>
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
         {% block stylesheets %}
+            <style>
+                /* ! tailwindcss v3.4.1 | MIT License | https://tailwindcss.com */
+                *, ::after, ::before {box-sizing: border-box; border-width: 0; border-style: solid; border-color: #e5e7eb}
+                ::after, ::before {--tw-content: ''}
+                html {line-height: 1.5; -webkit-text-size-adjust: 100%; -moz-tab-size: 4; tab-size: 4; font-family: ui-sans-serif, system-ui, sans-serif; font-feature-settings: normal; font-variation-settings: normal}
+                body {margin: 0; line-height: inherit}
+                hr {height: 0; color: inherit; border-top-width: 1px}
+                abbr:where([title]) {text-decoration: underline dotted}
+                h1, h2, h3, h4, h5, h6 {font-size: inherit; font-weight: inherit}
+                a {color: inherit; text-decoration: inherit}
+                b, strong {font-weight: bolder}
+                code, kbd, pre, samp {font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 1em}
+                small {font-size: 80%}
+                sub, sup {font-size: 75%; line-height: 0; position: relative; vertical-align: baseline}
+                sub {bottom: -0.25em}
+                sup {top: -0.5em}
+                table {text-indent: 0; border-color: inherit; border-collapse: collapse}
+                button, input, optgroup, select, textarea {font-family: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-size: 100%; font-weight: inherit; line-height: inherit; color: inherit; margin: 0; padding: 0}
+                button, select {text-transform: none}
+                [type=button], [type=reset], [type=submit], button {-webkit-appearance: button; background-color: transparent; background-image: none}
+                :-moz-focusring {outline: auto}
+                :-moz-ui-invalid {box-shadow: none}
+                progress {vertical-align: baseline}
+                ::-webkit-inner-spin-button, ::-webkit-outer-spin-button {height: auto}
+                [type=search] {-webkit-appearance: textfield; outline-offset: -2px}
+                ::-webkit-search-decoration {-webkit-appearance: none}
+                ::-webkit-file-upload-button {-webkit-appearance: button; font: inherit}
+                summary {display: list-item}
+                blockquote, dd, dl, figure, h1, h2, h3, h4, h5, h6, hr, p, pre {margin: 0}
+                fieldset {margin: 0; padding: 0}
+                legend {padding: 0}
+                menu, ol, ul {list-style: none; margin: 0; padding: 0}
+                dialog {padding: 0}
+                textarea {resize: vertical}
+                input::placeholder, textarea::placeholder {opacity: 1; color: #9ca3af}
+                [role=button], button {cursor: pointer}
+                :disabled {cursor: default}
+                audio, canvas, embed, iframe, img, object, svg, video {display: block; vertical-align: middle}
+                img, video {max-width: 100%; height: auto}
+                [hidden] {display: none}
+                
+                /* Tailwind Utility Classes */
+                .flex {display: flex}
+                .grid {display: grid}
+                .hidden {display: none}
+                .min-h-screen {min-height: 100vh}
+                .w-full {width: 100%}
+                .w-\[40\%\] {width: 40%}
+                .h-auto {height: auto}
+                .h-16 {height: 4rem}
+                .w-16 {width: 4rem}
+                .h-6 {height: 1.5rem}
+                .w-6 {width: 1.5rem}
+                .grid-cols-2 {grid-template-columns: repeat(2, minmax(0, 1fr))}
+                .flex-col {flex-direction: column}
+                .items-center {align-items: center}
+                .justify-center {justify-content: center}
+                .space-x-4 > :not([hidden]) ~ :not([hidden]) {--tw-space-x-reverse: 0; margin-right: calc(1rem * var(--tw-space-x-reverse)); margin-left: calc(1rem * calc(1 - var(--tw-space-x-reverse)))}
+                .gap-4 {gap: 1rem}
+                .rounded-lg {border-radius: 0.5rem}
+                .rounded-full {border-radius: 9999px}
+                .border-t-2 {border-top-width: 2px}
+                .border-b-2 {border-bottom-width: 2px}
+                .border-indigo-500 {border-color: #6366f1}
+                .bg-gray-900 {background-color: #111827}
+                .bg-gray-800 {background-color: #1f2937}
+                .bg-indigo-600 {background-color: #4f46e5}
+                .bg-green-600 {background-color: #16a34a}
+                .bg-gray-600 {background-color: #4b5563}
+                .hover\:bg-indigo-700:hover {background-color: #4338ca}
+                .hover\:bg-green-700:hover {background-color: #15803d}
+                .hover\:bg-gray-700:hover {background-color: #374151}
+                .p-6 {padding: 1.5rem}
+                .py-3 {padding-top: 0.75rem; padding-bottom: 0.75rem}
+                .px-6 {padding-left: 1.5rem; padding-right: 1.5rem}
+                .py-2 {padding-top: 0.5rem; padding-bottom: 0.5rem}
+                .py-8 {padding-top: 2rem; padding-bottom: 2rem}
+                .text-center {text-align: center}
+                .text-3xl {font-size: 1.875rem; line-height: 2.25rem}
+                .text-2xl {font-size: 1.5rem; line-height: 2rem}
+                .text-lg {font-size: 1.125rem; line-height: 1.75rem}
+                .font-bold {font-weight: 700}
+                .text-white {color: #ffffff}
+                .text-gray-300 {color: #d1d5db}
+                .shadow-xl {--tw-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); --tw-shadow-colored: 0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color); box-shadow: var(--tw-shadow)}
+                .shadow-lg {--tw-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color); box-shadow: var(--tw-shadow)}
+                .transition-colors {transition-property: color, background-color, border-color, text-decoration-color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms}
+                .transform {transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}
+                .-translate-x-1\/2 {--tw-translate-x: -50%; transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}
+                .relative {position: relative}
+                .absolute {position: absolute}
+                .bottom-4 {bottom: 1rem}
+                .left-1\/2 {left: 50%}
+                .inline-block {display: inline-block}
+                .mb-6 {margin-bottom: 1.5rem}
+                .mb-4 {margin-bottom: 1rem}
+                .mx-auto {margin-left: auto; margin-right: auto}
+                .animate-spin {animation: spin 1s linear infinite}
+                @keyframes spin {from {transform: rotate(0deg)} to {transform: rotate(360deg)}}
+            </style>
         {% endblock %}
 
         {% block javascripts %}
+            {# {{ importmap('app') }}  #}
         {% endblock %}
     </head>
-    <body>
+    <body class="bg-gray-900">
         {% block body %}{% endblock %}
     </body>
 </html>
