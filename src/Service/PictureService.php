@@ -18,9 +18,10 @@ class PictureService
     {
     }
 
-    public function storePicture(string $filePath, string $originalName): Face
+    public function storePicture(string $filePath, string $originalFileName, string $name = ''): Face
     {
-        $file = $this->dm->getRepository(Picture::class)->uploadFromFile($filePath, $originalName);
+        $file = $this->dm->getRepository(Picture::class)->uploadFromFile($filePath, $originalFileName);
+        assert($file instanceof Picture);
 
         // Assign a mock ID for testing purposes if not already set
         if (! $file->id) {
@@ -34,17 +35,18 @@ class PictureService
         $imageData = $fileContent; // Placeholder for resizing logic
         [$description, $embeddings] = $this->generateDescriptionAndEmbeddings($imageData);
 
-        // Create a new Picture document
-        $picture = new Face();
-        $picture->file = $file;
-        $picture->resizedImage = $imageData;
-        $picture->description = $description;
-        $picture->embeddings = $embeddings;
+        // Create a new Face document
+        $face = new Face();
+        $face->name = $name;
+        $face->file = $file;
+        $face->resizedImage = $imageData;
+        $face->description = $description;
+        $face->embeddings = $embeddings;
 
-        $this->dm->persist($picture);
+        $this->dm->persist($face);
         $this->dm->flush();
 
-        return $picture;
+        return $face;
     }
 
     /**
