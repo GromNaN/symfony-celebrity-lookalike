@@ -96,9 +96,10 @@ class PictureServiceTest extends TestCase
             ->expects($this->once())
             ->method('flush');
 
-        $picture = $this->pictureService->storePicture($filePath, $originalName);
+        $picture = $this->pictureService->storePicture($filePath, $originalName, 'mockName');
 
         $this->assertInstanceOf(Face::class, $picture);
+        $this->assertEquals('mockName', $picture->name);
         $this->assertNotEmpty($picture->description);
         $this->assertNotEmpty($picture->embeddings);
     }
