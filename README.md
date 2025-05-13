@@ -1,27 +1,40 @@
 # Symfony/Doctrine Celebrity Face Matcher
 
 ## Overview
-Discover the power of AI-driven celebrity face matching with our Symfony application. Designed for conferences and events, this app combines cutting-edge technology with a user-friendly interface to deliver seamless face recognition and matching.
+This application is developed by the **MongoDB PHP Team** as a demonstration tool for conferences and technical talks. It showcases the full capabilities of MongoDB's vector search features in a fun, interactive way. Built with Symfony and MongoDB Doctrine ODM, this face-matching service allows attendees to find which MongoDB team member or open-source contributor they most resemble.
 
-## Features
+## Demo Purpose
+This project serves as a practical demonstration of:
+- MongoDB vector search capabilities in real-world applications
+- Symfony integration with MongoDB using Doctrine ODM
+- Practical implementation of AI-generated embeddings
+- Interactive web application development with Symfony UX
 
-### Backend
-- **Effortless Uploads**: Upload and store pictures as binary data (up to 12 MB).
-- **AI-Powered Insights**: Automatically generate descriptions and embeddings for uploaded images.
-- **Smart Storage**: Save names, resized images, descriptions, and embeddings in MongoDB.
-- **Optimized for Events**: Partial TTL index ensures efficient management of conference photos.
+## How It Works
+
+### Backend Flow
+- Upload pictures of MongoDB team members and open-source contributors
+- Application uses AI to generate descriptions of each person
+- Generate vector embeddings from these descriptions
+- Store name, resized image, description, and embeddings in MongoDB
 
 ### Matcher Flow
-- **Instant Capture**: Take pictures directly using a webcam.
-- **AI Matching**: Leverage AI to find the closest matches in the database.
-- **Confidence Alerts**: Receive special messages for high-confidence matches.
+- Take a picture using the webcam at conference booths
+- AI generates a description and embeddings of the captured person
+- MongoDB vector search finds similar faces based on embedding similarity
+- Display the closest matches with confidence scores
+- Show a special message for high-confidence matches
 
-### UI
-- **Conference-Ready Design**: Optimized for 33%/50% width screens, ensuring a smooth experience without scrolling.
+### MongoDB Features Showcase
+- **Vector Search**: Demonstrate MongoDB's vector search capabilities for similarity matching
+- **GridFS Storage**: Store and retrieve images as binary data (limited to ~12 MB)
+- **Partial TTL Index**: Automatically manage temporary images taken during conferences
+- **Doctrine ODM Integration**: Show seamless integration with Symfony applications
 
-## Hosting
-- **Database**: Hosted on MongoDB Atlas.
-- **Application**: Deployable on platform.sh for reliable performance.
+## UI Design
+- Optimized for conference kiosks (33%/50% width screens)
+- Designed to work without scrolling for a better user experience
+- Clean, intuitive interface for quick interactions at busy conference booths
 
 ## Installation
 
@@ -47,22 +60,34 @@ Discover the power of AI-driven celebrity face matching with our Symfony applica
    symfony server:start
    ```
 
-5. Access the app at `http://127.0.0.1:8000`.
+5. Access the application at `http://127.0.0.1:8000`.
 
-## Usage
+## Conference Usage
 
-### Uploading Pictures
-1. Navigate to the upload page.
-2. Upload a picture to generate a description and embeddings.
-3. Stored data is ready for matching.
+### Adding Team Members
+1. Access the admin interface
+2. Upload a clear picture of MongoDB team members or contributors
+3. The system will automatically generate descriptions and embeddings
+4. Add the name and other relevant details
 
-### Matching Faces
-1. Capture a picture using the webcam.
-2. AI generates a description and finds matches.
-3. View results and confidence messages.
+### Conference Booth Operation
+1. Set up the application on a kiosk at your conference booth
+2. Invite attendees to capture their picture using the webcam
+3. The application uses AI to analyze the face
+4. MongoDB's vector search quickly finds and displays the closest matches
+5. Special messages appear for high-confidence matches
+6. Engage attendees in discussions about MongoDB's vector search capabilities
+
+## Development
+This project is developed by the MongoDB PHP Team, based on [mongodb-developer/celeb-matcher-farm](https://github.com/mongodb-developer/celeb-matcher-farm) and will eventually be migrated to [mongodb-labs](https://github.com/GromNaN/symfony-celebrity-lookalike).
+
+## Technologies
+- MongoDB Atlas with Vector Search
+- Symfony 7.2.5
+- MongoDB Doctrine ODM
+- Symfony UX Components
+- AI-powered description generation
+- Vector embeddings for similarity matching
 
 ## Contributing
-We welcome contributions! Fork the repository and submit a pull request.
-
-## License
-Licensed under the MIT License.
+This is a showcase project by the MongoDB PHP Team. If you're interested in contributing, please reach out to the team or create a pull request against the repository.
