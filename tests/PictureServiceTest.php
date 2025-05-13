@@ -11,7 +11,7 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Repository\GridFSRepository;
 use PHPUnit\Framework\TestCase;
 
-use function file_put_contents;
+use function copy;
 use function glob;
 use function is_file;
 use function sys_get_temp_dir;
@@ -51,8 +51,8 @@ class PictureServiceTest extends TestCase
 
     public function testStorePicture(): void
     {
-        $filePath = tempnam(sys_get_temp_dir(), 'test_image');
-        file_put_contents($filePath, 'fake image content');
+        $filePath = tempnam(sys_get_temp_dir(), 'test_image.png');
+        copy(__DIR__ . '/assets/face.png', $filePath);
         $originalName = 'image.jpg';
 
         $file = new Picture();
@@ -96,12 +96,13 @@ class PictureServiceTest extends TestCase
             ->expects($this->once())
             ->method('flush');
 
-        $picture = $this->pictureService->storePicture($filePath, $originalName, 'mockName');
+        $face = $this->pictureService->storePicture($filePath, $originalName, 'mockName');
 
-        $this->assertInstanceOf(Face::class, $picture);
-        $this->assertEquals('mockName', $picture->name);
-        $this->assertNotEmpty($picture->description);
-        $this->assertNotEmpty($picture->embeddings);
+        $this->assertInstanceOf(Face::class, $face);
+        $this->assertEquals('mockName', $face->name);
+        $this->assertNotEmpty($face->description);
+        $this->assertNotEmpty($face->embeddings);
+        $this->assertNotEmpty($face->resizedImage);
     }
 
     public function testFindSimilarPictures(): void
