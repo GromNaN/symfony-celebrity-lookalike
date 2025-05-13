@@ -20,14 +20,7 @@ class PictureService
 
     public function storePicture(string $filePath, string $originalName): Picture
     {
-        // Create a new File document
-        $file = new File();
-        $file->filename = $originalName;
-        $file->uploadDate = new \DateTime();
-
-        // Simulate storing the file content (e.g., in a database or file system)
-        $fileContent = file_get_contents($filePath);
-        $file->content = $fileContent; // Add a `content` field to the File document if needed
+        $file = $this->dm->getRepository(File::class)->uploadFromFile($filePath, $originalName);
 
         // Assign a mock ID for testing purposes if not already set
         if (! $file->id) {
@@ -37,13 +30,13 @@ class PictureService
         $this->dm->persist($file);
 
         // Generate description and embeddings
+        $fileContent = file_get_contents($filePath);
         $imageData = $fileContent; // Placeholder for resizing logic
         [$description, $embeddings] = $this->generateDescriptionAndEmbeddings($imageData);
 
         // Create a new Picture document
         $picture = new Picture();
         $picture->file = $file;
-        $picture->fileId = $file->id; // Ensure the fileId is set from the File document
         $picture->resizedImage = $imageData;
         $picture->description = $description;
         $picture->embeddings = $embeddings;

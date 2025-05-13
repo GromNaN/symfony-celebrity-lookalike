@@ -8,6 +8,7 @@ use App\Document\File;
 use App\Document\Picture;
 use App\Service\PictureService;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Doctrine\ODM\MongoDB\Repository\GridFSRepository;
 use PHPUnit\Framework\TestCase;
 
 use function file_put_contents;
@@ -58,6 +59,20 @@ class PictureServiceTest extends TestCase
         $file->id = 'mockFileId';
         $file->filename = $originalName;
         $file->uploadDate = new \DateTime();
+
+        $bucketMock = $this->createMock(GridFSRepository::class);
+
+        $bucketMock
+            ->expects($this->once())
+            ->method('uploadFromFile')
+            ->with($filePath, $originalName)
+            ->willReturn($file);
+
+        $this->documentManagerMock
+            ->expects($this->once())
+            ->method('getRepository')
+            ->with(File::class)
+            ->willReturn($bucketMock);
 
         $this->documentManagerMock
             ->expects($this->exactly(2))
