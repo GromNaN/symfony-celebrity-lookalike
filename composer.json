@@ -10,6 +10,7 @@
         "ext-mongodb": "^2",
         "mongodb/mongodb": "^2",
         "doctrine/mongodb-odm-bundle": "^5.3",
+        "imagine/imagine": ">=1.5",
         "symfony/asset-mapper": "*",
         "symfony/console": "*",
         "symfony/debug-bundle": "*",

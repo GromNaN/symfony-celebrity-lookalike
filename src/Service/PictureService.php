@@ -7,8 +7,10 @@ namespace App\Service;
 use App\Document\Face;
 use App\Document\Picture;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Imagine\Gd\Imagine;
+use Imagine\Image\Box;
+use Imagine\Image\Format;
 
-use function file_get_contents;
 use function rand;
 use function uniqid;
 
@@ -30,16 +32,13 @@ class PictureService
 
         $this->dm->persist($file);
 
-        // Generate description and embeddings
-        $fileContent = file_get_contents($filePath);
-        $imageData = $fileContent; // Placeholder for resizing logic
-        [$description, $embeddings] = $this->generateDescriptionAndEmbeddings($imageData);
+        [$description, $embeddings] = $this->generateDescriptionAndEmbeddings($filePath);
 
         // Create a new Face document
         $face = new Face();
         $face->name = $name;
         $face->file = $file;
-        $face->resizedImage = $imageData;
+        $face->resizedImage = $this->getResizedImage($filePath);
         $face->description = $description;
         $face->embeddings = $embeddings;
 
@@ -54,7 +53,7 @@ class PictureService
      *
      * @return array{0: string, 1: float[]}
      */
-    public function generateDescriptionAndEmbeddings(string $imageData): array
+    public function generateDescriptionAndEmbeddings(string $filePath): array
     {
         // Placeholder logic for AI integration
         $description = 'Generated description';
@@ -90,5 +89,12 @@ class PictureService
         }
 
         return $matches;
+    }
+
+    private function getResizedImage(string $filePath): string
+    {
+        $image = new Imagine()->open($filePath);
+
+        return $image->thumbnail(new Box(400, 400))->get(Format::ID_PNG);
     }
 }

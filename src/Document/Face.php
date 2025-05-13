@@ -18,6 +18,9 @@ class Face
     #[ODM\Field(type: 'string')]
     public ?string $description = null;
 
+    #[ODM\Field(type: 'bin')]
+    public string $resizedImage;
+
     /** @var float[] */
     #[ODM\Field(type: 'collection')]
     public ?array $embeddings = null;
