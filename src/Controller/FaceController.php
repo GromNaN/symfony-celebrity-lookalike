@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Document\Face;
 use App\Form\UploadForm;
 use App\Service\PictureService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -11,10 +12,23 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class UploadController extends AbstractController
+class FaceController extends AbstractController
 {
-    #[Route('/upload', name: 'upload_picture', methods: ['GET', 'POST'])]
-    public function __invoke(PictureService $pictureService, Request $request): Response
+    #[Route('/picture/{id}', name: 'face_picture', methods: ['GET'])]
+    public function picture(Face $face): Response
+    {
+        return new Response(
+            $face->resizedImage,
+            headers: [
+                'Content-Type' => 'image/png',
+                'Content-Disposition' => 'inline',
+                'Content-Length' => (string) strlen($face->resizedImage),
+            ],
+        );
+    }
+
+    #[Route('/upload', name: 'face_upload', methods: ['GET', 'POST'])]
+    public function upload(PictureService $pictureService, Request $request): Response
     {
         $form = $this->createForm(UploadForm::class);
         $form->handleRequest($request);
