@@ -44,7 +44,6 @@ class GitHubTest extends TestCase
         $github = new GitHub($httpClient, 'dummy_token');
 
         $method = new \ReflectionMethod(GitHub::class, 'parseLinkHeader');
-        $method->setAccessible(true);
 
         $headers = ['<https://api.github.com/repos/owner/repo/contributors?page=2>; rel="next", <https://api.github.com/repos/owner/repo/contributors?page=3>; rel="last"'];
 

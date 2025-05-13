@@ -36,6 +36,7 @@ class ImportContributorsCommand
         ['count' => $count, 'iterator' => $iterator] = $this->github->getContributors($repository);
 
         $progressBar = new ProgressBar($output);
+        $progressBar->setFormat(ProgressBar::FORMAT_VERY_VERBOSE);
         $progressBar->start($count);
         $totalContributors = 0;
 
@@ -45,8 +46,10 @@ class ImportContributorsCommand
             $this->importContributors($contributors, $output);
         }
 
+        $progressBar->setMaxSteps($totalContributors);
         $progressBar->finish();
 
+        $output->writeln('');
         $output->writeln(sprintf('%d contributors imported successfully.', $totalContributors));
 
         return Command::SUCCESS;
