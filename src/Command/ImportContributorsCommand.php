@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Document\Face;
+use App\Service\GitHub;
 use App\Service\PictureService;
-use Doctrine\ODM\MongoDB\DocumentManager;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -20,9 +20,9 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class ImportContributorsCommand
 {
     public function __construct(
+        private GitHub $github,
         private HttpClientInterface $httpClient,
-        private DocumentManager $documentManager,
-        private PictureService $pictureService
+        private PictureService $pictureService,
     ) {
     }
 
@@ -33,15 +33,41 @@ class ImportContributorsCommand
     ): int {
         $output->writeln(sprintf('Fetching contributors for repository: %s', $repository));
 
-        $url = sprintf('https://api.github.com/repos/%s/contributors', $repository);
-        $response = $this->httpClient->request('GET', $url);
-        $contributors = $response->toArray();
+        ['count' => $count, 'iterator' => $iterator] = $this->github->getContributors($repository);
+
+        $progressBar = new ProgressBar($output);
+        $progressBar->start($count);
+        $totalContributors = 0;
+
+        foreach ($iterator as $contributors) {
+            $totalContributors += count($contributors);
+            $progressBar->advance(count($contributors));
+            $this->importContributors($contributors, $output);
+        }
+
+        $progressBar->finish();
+
+        $output->writeln(sprintf('%d contributors imported successfully.', $totalContributors));
+
+        return Command::SUCCESS;
+    }
+
+    /** @param array<string, mixed> $contributors */
+    private function importContributors(
+        array $contributors,
+        OutputInterface $output,
+    ): void {
+        // Create parallel HTTP requests to retrieve the avatars
+        foreach ($contributors as &$contributor) {
+            $contributor['http_request'] = $this->httpClient->request('GET', $contributor['avatar_url']);
+        }
+
+        unset($contributor);
 
         foreach ($contributors as $contributor) {
-            $output->writeln(sprintf('Processing contributor: %s', $contributor['login']));
             file_put_contents(
                 $imageFile = tempnam(sys_get_temp_dir(), $contributor['login']),
-                $this->httpClient->request('GET', $contributor['avatar_url'])->getContent(),
+                $contributor['http_request']->getContent(),
             );
 
             $this->pictureService->storePicture(
@@ -50,12 +76,5 @@ class ImportContributorsCommand
                 $contributor['login'],
             );
         }
-
-        $this->documentManager->flush();
-
-        $output->writeln('Contributors imported successfully.');
-
-        return Command::SUCCESS;
     }
 }
-
