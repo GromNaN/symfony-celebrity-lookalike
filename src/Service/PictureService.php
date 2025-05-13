@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Document\File;
+use App\Document\Face;
 use App\Document\Picture;
 use Doctrine\ODM\MongoDB\DocumentManager;
 
@@ -18,9 +18,9 @@ class PictureService
     {
     }
 
-    public function storePicture(string $filePath, string $originalName): Picture
+    public function storePicture(string $filePath, string $originalName): Face
     {
-        $file = $this->dm->getRepository(File::class)->uploadFromFile($filePath, $originalName);
+        $file = $this->dm->getRepository(Picture::class)->uploadFromFile($filePath, $originalName);
 
         // Assign a mock ID for testing purposes if not already set
         if (! $file->id) {
@@ -35,7 +35,7 @@ class PictureService
         [$description, $embeddings] = $this->generateDescriptionAndEmbeddings($imageData);
 
         // Create a new Picture document
-        $picture = new Picture();
+        $picture = new Face();
         $picture->file = $file;
         $picture->resizedImage = $imageData;
         $picture->description = $description;
@@ -71,10 +71,10 @@ class PictureService
         return rand(0, 100) / 100; // Random similarity for now
     }
 
-    /** @return array{picture: Picture, similarity: float} */
-    public function findSimilarPictures(Picture $picture, float $threshold = 0.8): array
+    /** @return array{picture: Face, similarity: float} */
+    public function findSimilarPictures(Face $picture, float $threshold = 0.8): array
     {
-        $pictures = $this->dm->getRepository(Picture::class)->findAll();
+        $pictures = $this->dm->getRepository(Face::class)->findAll();
 
         $matches = [];
         foreach ($pictures as $storedPicture) {

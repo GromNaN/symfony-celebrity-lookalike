@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests;
 
-use App\Document\File;
+use App\Document\Face;
 use App\Document\Picture;
 use App\Service\PictureService;
 use Doctrine\ODM\MongoDB\DocumentManager;
@@ -55,7 +55,7 @@ class PictureServiceTest extends TestCase
         file_put_contents($filePath, 'fake image content');
         $originalName = 'image.jpg';
 
-        $file = new File();
+        $file = new Picture();
         $file->id = 'mockFileId';
         $file->filename = $originalName;
         $file->uploadDate = new \DateTime();
@@ -71,7 +71,7 @@ class PictureServiceTest extends TestCase
         $this->documentManagerMock
             ->expects($this->once())
             ->method('getRepository')
-            ->with(File::class)
+            ->with(Picture::class)
             ->willReturn($bucketMock);
 
         $this->documentManagerMock
@@ -82,11 +82,11 @@ class PictureServiceTest extends TestCase
                 $callCount++;
 
                 if ($callCount === 1) {
-                    return $object instanceof File && $object->filename === $originalName;
+                    return $object instanceof Picture && $object->filename === $originalName;
                 }
 
                 if ($callCount === 2) {
-                    return $object instanceof Picture;
+                    return $object instanceof Face;
                 }
 
                 return false;
@@ -98,7 +98,7 @@ class PictureServiceTest extends TestCase
 
         $picture = $this->pictureService->storePicture($filePath, $originalName);
 
-        $this->assertInstanceOf(Picture::class, $picture);
+        $this->assertInstanceOf(Face::class, $picture);
         $this->assertNotEmpty($picture->description);
         $this->assertNotEmpty($picture->embeddings);
     }
@@ -108,7 +108,7 @@ class PictureServiceTest extends TestCase
         $embeddings = [0.1, 0.2, 0.3];
         $threshold = 0.8;
 
-        $pictureMock = $this->createMock(Picture::class);
+        $pictureMock = $this->createMock(Face::class);
         $pictureMock->embeddings = [0.1, 0.2, 0.3];
         $pictureMock->id = 'mockId';
         $pictureMock->description = 'mockDescription';
@@ -133,10 +133,10 @@ class PictureServiceTest extends TestCase
         $this->documentManagerMock
             ->expects($this->once())
             ->method('getRepository')
-            ->with(Picture::class)
+            ->with(Face::class)
             ->willReturn($repositoryMock);
 
-        $picture = new Picture();
+        $picture = new Face();
         $picture->embeddings = $embeddings;
 
         $matches = $this->pictureService->findSimilarPictures($picture, $threshold);

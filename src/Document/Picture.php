@@ -6,22 +6,15 @@ namespace App\Document;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 
-#[ODM\Document(collection: 'pictures')]
+#[ODM\File(bucketName: 'pictures')]
 class Picture
 {
     #[ODM\Id]
     public ?string $id = null;
 
-    #[ODM\Field]
-    public ?string $name = null;
-
     #[ODM\Field(type: 'string')]
-    public ?string $description = null;
+    public string $filename;
 
-    /** @var float[] */
-    #[ODM\Field(type: 'collection')]
-    public ?array $embeddings = null;
-
-    #[ODM\ReferenceOne(targetDocument: File::class, cascade: ['persist', 'remove'])]
-    public ?File $file = null;
+    #[ODM\Field(type: 'date')]
+    public \DateTime $uploadDate;
 }
