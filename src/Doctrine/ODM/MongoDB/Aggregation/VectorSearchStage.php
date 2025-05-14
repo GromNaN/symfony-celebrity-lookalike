@@ -9,13 +9,16 @@ use Doctrine\ODM\MongoDB\Aggregation\Stage;
 final class VectorSearchStage extends Stage
 {
     private ?bool $exact = null;
+    /** @var array<string, mixed>|null  */
     private ?array $filter = null;
     private ?string $index = null;
     private ?int $limit = null;
     private ?int $numCandidates = null;
     private ?string $path = null;
+    /** @var float[]|null  */
     private ?array $queryVector = null;
 
+    /** @return array<string, array<string, mixed>>|null */
     public function getExpression(): ?array
     {
         $stage = [];
@@ -57,6 +60,7 @@ final class VectorSearchStage extends Stage
         return $this;
     }
 
+    /** @param array<string, mixed> $filter */
     public function filter(array $filter): self
     {
         $this->filter = $filter;
@@ -92,6 +96,7 @@ final class VectorSearchStage extends Stage
         return $this;
     }
 
+    /** @param float[] $queryVector */
     public function queryVector(array $queryVector): self
     {
         $this->queryVector = $queryVector;
