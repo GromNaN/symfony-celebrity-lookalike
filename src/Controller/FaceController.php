@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Document\Face;
 use App\Form\UploadForm;
 use App\Service\PictureService;
+use Doctrine\ODM\MongoDB\DocumentManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,6 +28,14 @@ class FaceController extends AbstractController
         );
     }
 
+    #[Route('/faces', name: 'face_list', methods: ['GET'])]
+    public function list(DocumentManager $dm): Response
+    {
+        $faces = $dm->getRepository(Face::class)->findAll();
+
+        return $this->render('face/list.html.twig', ['faces' => $faces]);
+    }
+
     #[Route('/upload', name: 'face_upload', methods: ['GET', 'POST'])]
     public function upload(PictureService $pictureService, Request $request): Response
     {
@@ -45,6 +54,6 @@ class FaceController extends AbstractController
             $form = $this->createForm(UploadForm::class);
         }
 
-        return $this->render('upload.html.twig', ['form' => $form->createView()]);
+        return $this->render('face/upload.html.twig', ['form' => $form->createView()]);
     }
 }
