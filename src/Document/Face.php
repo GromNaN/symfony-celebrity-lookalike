@@ -12,7 +12,7 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
     fields: [
         'numDimensions' => 1024,
         'path' => 'embeddings',
-        'similarity' => 'euclidian',
+        'similarity' => 'euclidean',
         'type' => 'vector',
     ],
 )]

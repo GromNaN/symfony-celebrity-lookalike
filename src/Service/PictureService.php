@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Document\Face;
 use App\Document\Picture;
+use App\Document\VectorSearchResult;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Imagine\Gd\Imagine;
 use Imagine\Image\Box;
@@ -67,22 +68,20 @@ class PictureService
     }
 
     /** @return array{picture: Face, similarity: float} */
-    public function findSimilarPictures(Face $picture, float $threshold = 0.8): array
+    public function findSimilarPictures(Face $face, float $threshold = 0.8): array
     {
-        $pictures = $this->dm->getRepository(Face::class)->findAll();
+        $faces = $this->dm->getRepository(Face::class)
+            ->createAggregationBuilder()
+            ->hydrate(VectorSearchResult::class)
+            ->sample(5)
+            ->project()
+                ->field('_id')->expression(0)
+                ->field('face')->expression('$$ROOT')
+                ->field('similarity')->literal(rand(0, 100) / 100)
+            ->getAggregation()
+            ->execute();
 
-        $matches = [];
-        foreach ($pictures as $storedPicture) {
-            $similarity = $this->calculateSimilarity($picture->embeddings, $storedPicture->embeddings);
-            if ($similarity >= $threshold) {
-                $matches[] = [
-                    'picture' => $storedPicture,
-                    'similarity' => $similarity,
-                ];
-            }
-        }
-
-        return $matches;
+        return $faces->toArray();
     }
 
     private function checkForContributor(string $name): ?Face

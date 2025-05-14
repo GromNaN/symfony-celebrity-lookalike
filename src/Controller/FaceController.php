@@ -36,6 +36,15 @@ class FaceController extends AbstractController
         return $this->render('face/list.html.twig', ['faces' => $faces]);
     }
 
+    #[Route('/faces/{id}', name: 'face_show', methods: ['GET'])]
+    public function show(Face $face, PictureService $pictureService): Response
+    {
+        return $this->render('face/show.html.twig', [
+            'face' => $face,
+            'similar_faces' => $pictureService->findSimilarPictures($face),
+        ]);
+    }
+
     #[Route('/upload', name: 'face_upload', methods: ['GET', 'POST'])]
     public function upload(PictureService $pictureService, Request $request): Response
     {

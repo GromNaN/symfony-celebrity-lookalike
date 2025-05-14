@@ -10,7 +10,9 @@
         <div class="grid grid-flow-row auto-rows-max gap-4" style="grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));">
             {% for face in faces %}
                 <div class="flex justify-center">
-                    <img src="{{ path('face_picture', { id: face.id }) }}" alt="{{ face.name }}" title="{{ face.name }}" class="w-16 h-16">
+                    <a href="{{ path('face_show', { id: face.id }) }}">
+                        <img src="{{ path('face_picture', { id: face.id }) }}" alt="{{ face.name }}" title="{{ face.name }}" class="w-16 h-16">
+                    </a>
                 </div>
             {% endfor %}
         </div>
