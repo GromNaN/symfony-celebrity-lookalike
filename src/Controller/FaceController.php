@@ -25,7 +25,7 @@ class FaceController extends AbstractController
                 'Content-Disposition' => 'inline',
                 'Content-Length' => (string) strlen($face->resizedImage),
             ],
-        );
+        )->setMaxAge(315360000)->setPublic()->setImmutable();
     }
 
     #[Route('/faces', name: 'face_list', methods: ['GET'])]
