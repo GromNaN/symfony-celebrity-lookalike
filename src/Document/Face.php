@@ -13,6 +13,7 @@ class Face
     public ?string $id = null;
 
     #[ODM\Field]
+    #[ODM\Index(unique: true)]
     public ?string $name = null;
 
     #[ODM\Field(type: 'string')]
