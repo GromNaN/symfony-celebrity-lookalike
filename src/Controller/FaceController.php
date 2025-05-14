@@ -25,7 +25,7 @@ class FaceController extends AbstractController
                 'Content-Disposition' => 'inline',
                 'Content-Length' => (string) strlen($face->resizedImage),
             ],
-        );
+        )->setMaxAge(315360000)->setPublic()->setImmutable();
     }
 
     #[Route('/faces', name: 'face_list', methods: ['GET'])]
@@ -34,6 +34,15 @@ class FaceController extends AbstractController
         $faces = $dm->getRepository(Face::class)->findAll();
 
         return $this->render('face/list.html.twig', ['faces' => $faces]);
+    }
+
+    #[Route('/faces/{id}', name: 'face_show', methods: ['GET'])]
+    public function show(Face $face, PictureService $pictureService): Response
+    {
+        return $this->render('face/show.html.twig', [
+            'face' => $face,
+            'similar_faces' => $pictureService->findSimilarPictures($face),
+        ]);
     }
 
     #[Route('/upload', name: 'face_upload', methods: ['GET', 'POST'])]

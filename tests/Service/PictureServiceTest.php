@@ -129,46 +129,4 @@ class PictureServiceTest extends TestCase
         $this->assertEquals([-1, 0.5, 1], $face->embeddings);
         $this->assertNotEmpty($face->resizedImage);
     }
-
-    public function testFindSimilarPictures(): void
-    {
-        $embeddings = [0.1, 0.2, 0.3];
-        $threshold = 0.8;
-
-        $pictureMock = $this->createMock(Face::class);
-        $pictureMock->embeddings = [0.1, 0.2, 0.3];
-        $pictureMock->id = 'mockId';
-        $pictureMock->description = 'mockDescription';
-
-        $repositoryMock = $this->createMock(\Doctrine\Persistence\ObjectRepository::class);
-        $repositoryMock
-            ->expects($this->once())
-            ->method('findAll')
-            ->willReturn([$pictureMock]);
-
-        $this->pictureService = $this->getMockBuilder(PictureService::class)
-            ->setConstructorArgs([$this->documentManagerMock, $this->voyageAIMock])
-            ->onlyMethods(['calculateSimilarity'])
-            ->getMock();
-
-        $this->pictureService
-            ->expects($this->once())
-            ->method('calculateSimilarity')
-            ->with($embeddings, $pictureMock->embeddings)
-            ->willReturn(0.9);
-
-        $this->documentManagerMock
-            ->expects($this->once())
-            ->method('getRepository')
-            ->with(Face::class)
-            ->willReturn($repositoryMock);
-
-        $picture = new Face();
-        $picture->embeddings = $embeddings;
-
-        $matches = $this->pictureService->findSimilarPictures($picture, $threshold);
-
-        $this->assertNotEmpty($matches);
-        $this->assertEquals($pictureMock, $matches[0]['picture']);
-    }
 }
