@@ -10,14 +10,17 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Imagine\Gd\Imagine;
 use Imagine\Image\Box;
 use Imagine\Image\Format;
+use Imagine\Image\ImageInterface;
 
 use function rand;
 use function uniqid;
 
 class PictureService
 {
-    public function __construct(private DocumentManager $dm)
-    {
+    public function __construct(
+        private DocumentManager $dm,
+        private VoyageAI $voyageAI,
+    ) {
     }
 
     public function storePicture(string $filePath, string $originalFileName, string $name = ''): Face
@@ -32,34 +35,20 @@ class PictureService
 
         $this->dm->persist($file);
 
-        [$description, $embeddings] = $this->generateDescriptionAndEmbeddings($filePath);
+        $image = new Imagine()->open($filePath);
 
         // Create a new Face document
         $face = new Face();
         $face->name = $name;
         $face->file = $file;
-        $face->resizedImage = $this->getResizedImage($filePath);
-        $face->description = $description;
-        $face->embeddings = $embeddings;
+        $face->resizedImage = $this->getResizedImage($image);
+        $face->embeddings = $this->voyageAI->generateEmbeddings($image->get(Format::ID_PNG));
+        $face->description = '';
 
         $this->dm->persist($face);
         $this->dm->flush();
 
         return $face;
-    }
-
-    /**
-     * @param string $imageData Image file
-     *
-     * @return array{0: string, 1: float[]}
-     */
-    public function generateDescriptionAndEmbeddings(string $filePath): array
-    {
-        // Placeholder logic for AI integration
-        $description = 'Generated description';
-        $embeddings = [0.1, 0.2, 0.3];
-
-        return [$description, $embeddings];
     }
 
     /**
@@ -91,10 +80,10 @@ class PictureService
         return $matches;
     }
 
-    private function getResizedImage(string $filePath): string
+    private function getResizedImage(ImageInterface $image): string
     {
-        $image = new Imagine()->open($filePath);
-
-        return $image->thumbnail(new Box(400, 400))->get(Format::ID_PNG);
+        return $image
+            ->thumbnail(new Box(400, 400))
+            ->get(Format::ID_PNG);
     }
 }

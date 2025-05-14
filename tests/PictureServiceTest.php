@@ -7,6 +7,7 @@ namespace App\Tests;
 use App\Document\Face;
 use App\Document\Picture;
 use App\Service\PictureService;
+use App\Service\VoyageAI;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Repository\GridFSRepository;
 use PHPUnit\Framework\TestCase;
@@ -22,6 +23,7 @@ class PictureServiceTest extends TestCase
 {
     private PictureService $pictureService;
     private DocumentManager $documentManagerMock;
+    private VoyageAI $voyageAIMock;
 
     protected function setUp(): void
     {
@@ -30,8 +32,14 @@ class PictureServiceTest extends TestCase
             ->onlyMethods(['persist', 'flush', 'getRepository'])
             ->getMock();
 
+        $this->voyageAIMock = $this->getMockBuilder(VoyageAI::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['generateEmbeddings'])
+            ->getMock();
+
         $this->pictureService = new PictureService(
             $this->documentManagerMock,
+            $this->voyageAIMock,
         );
     }
 
@@ -96,12 +104,17 @@ class PictureServiceTest extends TestCase
             ->expects($this->once())
             ->method('flush');
 
+        $this->voyageAIMock
+            ->expects($this->once())
+            ->method('generateEmbeddings')
+            ->willReturn([-1, 0.5, 1]);
+
         $face = $this->pictureService->storePicture($filePath, $originalName, 'mockName');
 
         $this->assertInstanceOf(Face::class, $face);
         $this->assertEquals('mockName', $face->name);
-        $this->assertNotEmpty($face->description);
-        $this->assertNotEmpty($face->embeddings);
+        $this->assertEmpty($face->description);
+        $this->assertEquals([-1, 0.5, 1], $face->embeddings);
         $this->assertNotEmpty($face->resizedImage);
     }
 
@@ -122,7 +135,7 @@ class PictureServiceTest extends TestCase
             ->willReturn([$pictureMock]);
 
         $this->pictureService = $this->getMockBuilder(PictureService::class)
-            ->setConstructorArgs([$this->documentManagerMock])
+            ->setConstructorArgs([$this->documentManagerMock, $this->voyageAIMock])
             ->onlyMethods(['calculateSimilarity'])
             ->getMock();
 
