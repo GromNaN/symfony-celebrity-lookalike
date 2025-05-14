@@ -37,7 +37,6 @@ class GitHub
         $url = sprintf('https://api.github.com/repos/%s/contributors?per_page=%d', $repository, $perPage);
         $response = $this->httpClient->request('GET', $url, $this->requestOptions);
         $links = $this->parseLinkHeader($response->getHeaders()['link'] ?? []);
-        $nextLink = $links['next'] ?? null;
         $lastLink = $links['last'] ?? null;
         $count = 1;
         if ($lastLink) {
@@ -47,12 +46,16 @@ class GitHub
 
         return [
             'count' => $count * $perPage,
-            'iterator' => (function () use ($nextLink) {
-                while ($nextLink) {
-                    $response = $this->httpClient->request('GET', $nextLink, $this->requestOptions);
-                    $nextLink = $this->parseLinkHeader($response->getHeaders()['link'])['next'] ?? null;
-
+            'iterator' => (function () use ($response) {
+                while (true) {
                     yield $response->toArray();
+
+                    $nextLink = $this->parseLinkHeader($response->getHeaders()['link'] ?? [])['next'] ?? null;
+                    if (! $nextLink) {
+                        return;
+                    }
+
+                    $response = $this->httpClient->request('GET', $nextLink, $this->requestOptions);
                 }
             })(),
         ];

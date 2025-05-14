@@ -30,8 +30,8 @@ class GitHubTest extends TestCase
         $this->assertEquals(30, $result['count']); // 3 pages * 10 per page
 
         $contributors = iterator_to_array($result['iterator']);
-        $this->assertCount(1, $contributors);
-        $this->assertEquals([['login' => 'user3'], ['login' => 'user4']], $contributors[0]);
+        $this->assertCount(2, $contributors);
+        $this->assertEquals([[['login' => 'user1'], ['login' => 'user2']], [['login' => 'user3'], ['login' => 'user4']]], $contributors);
 
         // Verify the requested URLs
         $this->assertStringContainsString('/repos/owner/repo/contributors', $responses[0]->getRequestUrl());
@@ -67,6 +67,6 @@ class GitHubTest extends TestCase
         $result = $github->getContributors('owner/repo');
 
         $this->assertGreaterThanOrEqual(1, $result['count']);
-        $this->assertEquals([], iterator_to_array($result['iterator']));
+        $this->assertEquals([[['login' => 'user1']]], iterator_to_array($result['iterator']));
     }
 }
