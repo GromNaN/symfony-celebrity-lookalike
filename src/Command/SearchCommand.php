@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Document\Face;
+use App\Document\VectorSearchResult;
 use App\Service\VoyageAI;
 use App\VoyageAi\InputType;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Iterator\HydratingIterator;
 use Imagine\Gd\Imagine;
+use MongoDB\Builder\Expression;
 use MongoDB\Builder\Pipeline;
 use MongoDB\Builder\Stage;
 use MongoDB\Driver\CursorInterface;
@@ -44,15 +46,16 @@ class SearchCommand
         $results = $this->dm->getDocumentCollection(Face::class)
             ->aggregate($this->getSearchPipeline($embeddings));
 
-        foreach ($this->prepareIterator($results) as $face) {
-            assert($face instanceof Face);
+        foreach ($this->prepareIterator($results) as $result) {
+            assert($result instanceof VectorSearchResult);
 
-            $output->writeln(sprintf('Found contributor: %s', $face->name));
+            $output->writeln(sprintf('Found contributor: %s; score: %.5f', $result->face->name, $result->score));
         }
 
         return Command::SUCCESS;
     }
 
+    /** @param list<float> $embeddings */
     private function getSearchPipeline(array $embeddings): Pipeline
     {
         return new Pipeline(
@@ -63,11 +66,15 @@ class SearchCommand
                 queryVector: $embeddings,
                 numCandidates: 3,
             ),
+            Stage::addFields(
+                face: Expression::variable('ROOT'),
+                score: Expression::meta('vectorSearchScore'),
+            ),
         );
     }
 
     private function prepareIterator(CursorInterface $cursor): HydratingIterator
     {
-        return new HydratingIterator($cursor, $this->dm->getUnitOfWork(), $this->dm->getClassMetadata(Face::class));
+        return new HydratingIterator($cursor, $this->dm->getUnitOfWork(), $this->dm->getClassMetadata(VectorSearchResult::class));
     }
 }
