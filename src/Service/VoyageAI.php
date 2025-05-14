@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\VoyageAi\InputType;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
@@ -26,23 +27,29 @@ class VoyageAI
      *
      * @return list<list<float>>
      */
-    public function generateEmbeddings(string $imageData): array
+    public function generateEmbeddings(string $imageData, InputType $inputType = InputType::None): array
     {
-        $response = $this->httpClient->request('POST', 'https://api.voyageai.com/v1/multimodalembeddings', [
-            'auth_bearer' => $this->apiKey,
-            'json' => [
-                'model' => 'voyage-multimodal-3',
-                'input' => [
-                    [
-                        'content' => [
-                            [
-                                'type' => 'image_base64',
-                                'image_base64' => 'data:image/png;base64,' . base64_encode($imageData),
-                            ],
+        $request = [
+            'model' => 'voyage-multimodal-3',
+            'input' => [
+                [
+                    'content' => [
+                        [
+                            'type' => 'image_base64',
+                            'image_base64' => 'data:image/png;base64,' . base64_encode($imageData),
                         ],
                     ],
                 ],
             ],
+        ];
+
+        if ($inputType !== InputType::None) {
+            $request['input_type'] = $inputType->value;
+        }
+
+        $response = $this->httpClient->request('POST', 'https://api.voyageai.com/v1/multimodalembeddings', [
+            'auth_bearer' => $this->apiKey,
+            'json' => $request,
         ]);
 
         return $this->extractEmbeddings($response);
