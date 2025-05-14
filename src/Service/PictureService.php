@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Doctrine\ODM\MongoDB\Aggregation\VectorSearchStage;
 use App\Document\Face;
 use App\Document\Picture;
 use App\Document\VectorSearchResult;
@@ -70,14 +71,21 @@ class PictureService
     /** @return array{picture: Face, similarity: float} */
     public function findSimilarPictures(Face $face, float $threshold = 0.8): array
     {
-        $faces = $this->dm->getRepository(Face::class)
+        $builder = $this->dm->getRepository(Face::class)
             ->createAggregationBuilder()
-            ->hydrate(VectorSearchResult::class)
-            ->sample(5)
+            ->hydrate(VectorSearchResult::class);
+        $builder
+            ->addStage(new VectorSearchStage($builder))
+                ->index('faces')
+                ->path('embeddings')
+                ->numCandidates(50)
+                ->queryVector($face->embeddings)
+                ->limit(10)
             ->project()
                 ->field('_id')->expression(0)
                 ->field('face')->expression('$$ROOT')
-                ->field('similarity')->literal(rand(0, 100) / 100)
+                ->field('similarity')->literal(rand(0, 100) / 100);
+        $faces = $builder
             ->getAggregation()
             ->execute();
 
