@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0ed91b4a01da76f564d726cffc6411c5",
+    "content-hash": "83e53112bb0aaec29bdb852a597fa50b",
     "packages": [
         {
             "name": "composer/semver",
@@ -5102,21 +5102,20 @@
         },
         {
             "name": "symfony/var-exporter",
-            "version": "v7.3.0-BETA1",
+            "version": "v7.2.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/var-exporter.git",
-                "reference": "6d25a2377310c85f0400797e4f07c303df00bd74"
+                "reference": "422b8de94c738830a1e071f59ad14d67417d7007"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/var-exporter/zipball/6d25a2377310c85f0400797e4f07c303df00bd74",
-                "reference": "6d25a2377310c85f0400797e4f07c303df00bd74",
+                "url": "https://api.github.com/repos/symfony/var-exporter/zipball/422b8de94c738830a1e071f59ad14d67417d7007",
+                "reference": "422b8de94c738830a1e071f59ad14d67417d7007",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.2",
-                "symfony/deprecation-contracts": "^2.5|^3"
+                "php": ">=8.2"
             },
             "require-dev": {
                 "symfony/property-access": "^6.4|^7.0",
@@ -5159,7 +5158,7 @@
                 "serialize"
             ],
             "support": {
-                "source": "https://github.com/symfony/var-exporter/tree/v7.3.0-BETA1"
+                "source": "https://github.com/symfony/var-exporter/tree/v7.2.6"
             },
             "funding": [
                 {
@@ -5175,7 +5174,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2025-05-02T08:36:13+00:00"
+            "time": "2025-05-02T08:36:00+00:00"
         },
         {
             "name": "symfony/yaml",

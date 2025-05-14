@@ -21,6 +21,7 @@
         <exclude name="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly"/>
         <exclude name="SlevomatCodingStandard.ControlStructures.EarlyExit"/>
         <exclude name="Generic.Formatting.MultipleStatementAlignment"/>
+        <exclude name="Generic.Files.LineLength"/>
     </rule>
 
     <rule name="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly">
