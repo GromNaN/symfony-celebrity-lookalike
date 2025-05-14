@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests;
+namespace App\Tests\Service;
 
 use App\Document\Face;
 use App\Document\Picture;
@@ -11,7 +11,6 @@ use App\Service\VoyageAI;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Repository\GridFSRepository;
 use PHPUnit\Framework\TestCase;
-
 use function copy;
 use function glob;
 use function is_file;
