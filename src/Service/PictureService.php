@@ -25,6 +25,11 @@ class PictureService
 
     public function storePicture(string $filePath, string $originalFileName, string $name = ''): Face
     {
+        $face = $this->checkForContributor($name);
+        if ($face) {
+            return $face;
+        }
+
         $file = $this->dm->getRepository(Picture::class)->uploadFromFile($filePath, $originalFileName);
         assert($file instanceof Picture);
 
@@ -78,6 +83,11 @@ class PictureService
         }
 
         return $matches;
+    }
+
+    private function checkForContributor(string $name): ?Face
+    {
+        return $this->dm->getRepository(Face::class)->findOneBy(['name' => $name]);
     }
 
     private function getResizedImage(ImageInterface $image): string
