@@ -6,4 +6,4 @@ services:
     environment:
       - MONGODB_INITDB_DATABASE=${MONGODB_DB:-app}
     ports:
-      - "27017"
+      - "27017:27017"
