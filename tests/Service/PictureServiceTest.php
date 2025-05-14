@@ -9,6 +9,7 @@ use App\Document\Picture;
 use App\Service\PictureService;
 use App\Service\VoyageAI;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Doctrine\ODM\MongoDB\Repository\DocumentRepository;
 use Doctrine\ODM\MongoDB\Repository\GridFSRepository;
 use PHPUnit\Framework\TestCase;
 
@@ -60,7 +61,7 @@ class PictureServiceTest extends TestCase
     public function testStorePicture(): void
     {
         $filePath = tempnam(sys_get_temp_dir(), 'test_image.png');
-        copy(__DIR__ . '/assets/face.png', $filePath);
+        copy(__DIR__ . '/../assets/face.png', $filePath);
         $originalName = 'image.jpg';
 
         $file = new Picture();
@@ -69,6 +70,7 @@ class PictureServiceTest extends TestCase
         $file->uploadDate = new \DateTime();
 
         $bucketMock = $this->createMock(GridFSRepository::class);
+        $repositoryMock = $this->createMock(DocumentRepository::class);
 
         $bucketMock
             ->expects($this->once())
@@ -76,11 +78,21 @@ class PictureServiceTest extends TestCase
             ->with($filePath, $originalName)
             ->willReturn($file);
 
+        $repositoryMock
+            ->expects($this->any(2))
+            ->method('findOneBy')
+            ->with(['name' => 'mockName'])
+            ->willReturn(null);
+
         $this->documentManagerMock
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('getRepository')
-            ->with(Picture::class)
-            ->willReturn($bucketMock);
+            ->willReturnMap(
+                [
+                    [Picture::class, $bucketMock],
+                    [Face::class, $repositoryMock],
+                ],
+            );
 
         $this->documentManagerMock
             ->expects($this->exactly(2))
