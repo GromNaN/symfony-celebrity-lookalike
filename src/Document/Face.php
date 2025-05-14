@@ -7,6 +7,15 @@ namespace App\Document;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 
 #[ODM\Document(collection: 'faces')]
+#[ODM\SearchIndex(
+    name: 'faces',
+    fields: [
+        'numDimensions' => 1024,
+        'path' => 'embeddings',
+        'similarity' => 'euclidian',
+        'type' => 'vector',
+    ],
+)]
 class Face
 {
     #[ODM\Id]
