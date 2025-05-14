@@ -20,7 +20,6 @@ class PictureService
     {
     }
 
-    /** @param string $filePath File path or content */
     public function storePicture(string $filePath, string $originalFileName, string $name = ''): Face
     {
         $file = $this->dm->getRepository(Picture::class)->uploadFromFile($filePath, $originalFileName);
