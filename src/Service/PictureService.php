@@ -67,33 +67,24 @@ class PictureService
         return $face;
     }
 
-    /**
-     * @param float[] $embeddings1
-     * @param float[] $embeddings2
-     */
-    public function calculateSimilarity(array $embeddings1, array $embeddings2): float
-    {
-        // Placeholder logic for calculating similarity (e.g., cosine similarity)
-        return rand(0, 100) / 100; // Random similarity for now
-    }
-
-    /** @return array{picture: Face, similarity: float} */
-    public function findSimilarPictures(Face $face, float $threshold = 0.8): array
+    /** @return list<VectorSearchResult> */
+    public function findSimilarPictures(Face $face, int $limit = 10, float $threshold = 0.8): array
     {
         $builder = $this->dm->getRepository(Face::class)
             ->createAggregationBuilder()
             ->hydrate(VectorSearchResult::class);
+
         $builder
             ->addStage(new VectorSearchStage($builder))
                 ->index('faces')
                 ->path('embeddings')
-                ->numCandidates(50)
+                ->numCandidates($limit * 20)
                 ->queryVector($face->embeddings)
-                ->limit(10)
+                ->limit($limit)
             ->project()
                 ->field('_id')->expression(0)
                 ->field('face')->expression('$$ROOT')
-                ->field('similarity')->literal(rand(0, 100) / 100);
+                ->field('score')->meta('vectorSearchScore');
         $faces = $builder
             ->getAggregation()
             ->execute();
