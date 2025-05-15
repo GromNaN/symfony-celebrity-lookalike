@@ -3,11 +3,11 @@
 {% block body %}
 <div class="flex justify-center items-center min-h-screen bg-gray-900">
     <div class="w-[40%] bg-gray-800 rounded-lg shadow-xl p-6 text-center">
-        <h1 class="text-3xl font-bold text-white mb-6">Celebrity Face Matcher - Face List</h1>
+        <h1 class="text-3xl font-bold text-white mb-6">Celebrity Face Matcher - {{ face.name }}</h1>
 
         <div>
             <img src="{{ path('face_picture', { id: face.id }) }}" alt="{{ face.name }}" class="w-full rounded-lg shadow-lg">
-            <div class="text-center mt-4 text-white text-xl font-semibold">{{ face.name }}</div>
+            <p class="mt-4 text-white text-xl font-semibold">{{ face.description|nl2br }}</p>
         </div>
 
         <div class="grid grid-flow-row auto-rows-max gap-4" style="grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));">
