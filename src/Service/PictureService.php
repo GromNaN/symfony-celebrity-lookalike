@@ -14,7 +14,6 @@ use Imagine\Image\Box;
 use Imagine\Image\Format;
 use Imagine\Image\ImageInterface;
 
-use function rand;
 use function uniqid;
 
 class PictureService
