@@ -25,7 +25,7 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
             'numDimensions' => 1024,
             'path' => 'descriptionEmbeddings',
             'similarity' => 'euclidean',
-            'type' => 'vectorSearch',
+            'type' => 'vector',
         ],
     ],
 )]
@@ -54,4 +54,7 @@ class Face
 
     #[ODM\ReferenceOne(targetDocument: Picture::class, cascade: ['persist', 'remove'])]
     public ?Picture $file = null;
+
+    #[ODM\Field(type: 'date_immutable')]
+    public ?\DateTimeImmutable $expiresAt = null;
 }

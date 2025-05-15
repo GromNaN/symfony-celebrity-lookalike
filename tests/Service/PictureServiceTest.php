@@ -39,7 +39,7 @@ class PictureServiceTest extends TestCase
 
         $this->voyageAIMock = $this->getMockBuilder(VoyageAI::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['generateTextEmbeddings'])
+            ->onlyMethods(['generateTextEmbeddings', 'generateImageEmbeddings'])
             ->getMock();
 
         $this->openAIMock = $this->getMockBuilder(OpenAI::class)

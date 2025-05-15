@@ -275,18 +275,29 @@
 
         // Validate photo
         validateBtn.addEventListener('click', () => {
-            // Show similar images
-            previewView.classList.remove('hidden');
-            similarView.classList.remove('hidden');
-            retakeBtn.classList.add('hidden');
-            validateBtn.classList.add('hidden');
-            newPhotoBtn.classList.remove('hidden');
+            // Get image data from canvas
+            const imageData = canvas.toDataURL('image/png');
 
-            // Add animation to similar images
-            const similarImages = document.querySelectorAll('.similar-image');
-            similarImages.forEach((img, index) => {
-                img.style.animation = `fadeIn 0.5s ease ${index * 0.1}s forwards`;
-                img.style.opacity = '0';
+            // Send image to backend via AJAX
+            fetch('/webcam/store', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ image: imageData })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.url) {
+                    // Redirect to the returned URL
+                    window.location.href = data.url;
+                } else {
+                    alert('Failed to store image.');
+                }
+            })
+            .catch(() => {
+                alert('Error uploading image.');
             });
         });
 
