@@ -58,7 +58,7 @@ class PictureService
         $face->name = $name;
         $face->file = $file;
         $face->resizedImage = $this->getResizedImage($image);
-        [$face->description, $face->embeddings] = $this->generateDescriptionAndEmbeddings($image->get(Format::ID_PNG));
+        [$face->description, $face->descriptionEmbeddings] = $this->generateDescriptionAndEmbeddings($image->get(Format::ID_PNG));
 
         $this->dm->persist($face);
         $this->dm->flush();
@@ -75,10 +75,10 @@ class PictureService
 
         $builder
             ->addStage(new VectorSearchStage($builder))
-                ->index('faces')
-                ->path('embeddings')
+                ->index('descriptions')
+                ->path('descriptionEmbeddings')
                 ->numCandidates($limit * 20)
-                ->queryVector($face->embeddings)
+                ->queryVector($face->descriptionEmbeddings)
                 ->limit($limit)
             ->project()
                 ->field('_id')->expression(0)

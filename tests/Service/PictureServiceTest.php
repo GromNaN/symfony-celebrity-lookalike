@@ -142,7 +142,7 @@ class PictureServiceTest extends TestCase
         $this->assertInstanceOf(Face::class, $face);
         $this->assertEquals('mockName', $face->name);
         $this->assertSame('mock description', $face->description);
-        $this->assertEquals([-1, 0.5, 1], $face->embeddings);
+        $this->assertEquals([-1, 0.5, 1], $face->descriptionEmbeddings);
         $this->assertNotEmpty($face->resizedImage);
     }
 
