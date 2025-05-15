@@ -10,10 +10,12 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 #[ODM\SearchIndex(
     name: 'faces',
     fields: [
-        'numDimensions' => 1024,
-        'path' => 'embeddings',
-        'similarity' => 'euclidean',
-        'type' => 'vector',
+        [
+            'numDimensions' => 1024,
+            'path' => 'embeddings',
+            'similarity' => 'euclidean',
+            'type' => 'vector',
+        ],
     ],
 )]
 class Face
