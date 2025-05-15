@@ -6,10 +6,12 @@ namespace App\Command;
 
 use App\Document\Face;
 use App\Document\Picture;
-use App\Service\VoyageAI;
+use App\Service\PictureService;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Repository\DocumentRepository;
 use Doctrine\ODM\MongoDB\Repository\GridFSRepository;
+use Imagine\Gd\Imagine;
+use Imagine\Image\Format;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -27,7 +29,7 @@ readonly class RegenerateEmbeddingsCommand
     private GridFSRepository $pictureRepository;
 
     public function __construct(
-        private VoyageAI $voyageAI,
+        private PictureService $pictureService,
         private DocumentManager $dm,
     ) {
         $this->faceRepository = $this->dm->getRepository(Face::class);
@@ -47,22 +49,25 @@ readonly class RegenerateEmbeddingsCommand
         $progressBar->setFormat(ProgressBar::FORMAT_VERY_VERBOSE);
         $progressBar->start($count);
 
-        foreach ($this->faceRepository->findAll() as $face) {
-            $pictureStream = $this->pictureRepository->openDownloadStream($face->file->id);
+        try {
+            foreach ($this->faceRepository->findAll() as $face) {
+                $pictureStream = $this->pictureRepository->openDownloadStream($face->file->id);
 
-            try {
-                $imageData = stream_get_contents($pictureStream);
-            } finally {
-                fclose($pictureStream);
+                try {
+                    $imageData = stream_get_contents($pictureStream);
+                } finally {
+                    fclose($pictureStream);
+                }
+
+                $image = new Imagine()->load($imageData);
+                [$face->description, $face->embeddings] = $this->pictureService->generateDescriptionAndEmbeddings($image->get(Format::ID_PNG));
+
+                $progressBar->advance();
             }
-
-            $face->embeddings = $this->voyageAI->generateEmbeddings($imageData);
-            $progressBar->advance();
+        } finally {
+            $this->dm->flush();
+            $progressBar->finish();
         }
-
-        $this->dm->flush();
-
-        $progressBar->finish();
 
         return Command::SUCCESS;
     }

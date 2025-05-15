@@ -21,8 +21,18 @@ class PictureService
 {
     public function __construct(
         private DocumentManager $dm,
+        private OpenAI $openAI,
         private VoyageAI $voyageAI,
     ) {
+    }
+
+    /** @return array{0: string, 1: list<float>} */
+    public function generateDescriptionAndEmbeddings(string $imageData): array
+    {
+        $description = $this->openAI->generateDescription($imageData);
+        $embeddings = $this->voyageAI->generateTextEmbeddings($description);
+
+        return [$description, $embeddings];
     }
 
     public function storePicture(string $filePath, string $originalFileName, string $name = ''): Face
@@ -49,8 +59,7 @@ class PictureService
         $face->name = $name;
         $face->file = $file;
         $face->resizedImage = $this->getResizedImage($image);
-        $face->embeddings = $this->voyageAI->generateEmbeddings($image->get(Format::ID_PNG));
-        $face->description = '';
+        [$face->description, $face->embeddings] = $this->generateDescriptionAndEmbeddings($image->get(Format::ID_PNG));
 
         $this->dm->persist($face);
         $this->dm->flush();
