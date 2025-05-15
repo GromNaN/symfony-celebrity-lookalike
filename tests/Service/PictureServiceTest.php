@@ -6,11 +6,14 @@ namespace App\Tests\Service;
 
 use App\Document\Face;
 use App\Document\Picture;
+use App\Service\OpenAI;
 use App\Service\PictureService;
 use App\Service\VoyageAI;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Repository\DocumentRepository;
 use Doctrine\ODM\MongoDB\Repository\GridFSRepository;
+use Imagine\Gd\Imagine;
+use Imagine\Image\Format;
 use PHPUnit\Framework\TestCase;
 
 use function copy;
@@ -25,6 +28,7 @@ class PictureServiceTest extends TestCase
     private PictureService $pictureService;
     private DocumentManager $documentManagerMock;
     private VoyageAI $voyageAIMock;
+    private OpenAI $openAIMock;
 
     protected function setUp(): void
     {
@@ -35,11 +39,17 @@ class PictureServiceTest extends TestCase
 
         $this->voyageAIMock = $this->getMockBuilder(VoyageAI::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['generateEmbeddings'])
+            ->onlyMethods(['generateTextEmbeddings'])
+            ->getMock();
+
+        $this->openAIMock = $this->getMockBuilder(OpenAI::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['generateDescription'])
             ->getMock();
 
         $this->pictureService = new PictureService(
             $this->documentManagerMock,
+            $this->openAIMock,
             $this->voyageAIMock,
         );
     }
@@ -116,17 +126,44 @@ class PictureServiceTest extends TestCase
             ->expects($this->once())
             ->method('flush');
 
+        $this->openAIMock
+            ->expects($this->once())
+            ->method('generateDescription')
+            ->willReturn('mock description');
+
         $this->voyageAIMock
             ->expects($this->once())
-            ->method('generateEmbeddings')
+            ->method('generateTextEmbeddings')
+            ->with('mock description')
             ->willReturn([-1, 0.5, 1]);
 
         $face = $this->pictureService->storePicture($filePath, $originalName, 'mockName');
 
         $this->assertInstanceOf(Face::class, $face);
         $this->assertEquals('mockName', $face->name);
-        $this->assertEmpty($face->description);
+        $this->assertSame('mock description', $face->description);
         $this->assertEquals([-1, 0.5, 1], $face->embeddings);
         $this->assertNotEmpty($face->resizedImage);
+    }
+
+    public function testGenerateDescriptionAndEmbeddings(): void
+    {
+        $image = new Imagine()->open(__DIR__ . '/../assets/face.png');
+
+        $this->openAIMock
+            ->expects($this->once())
+            ->method('generateDescription')
+            ->willReturn('mock description');
+
+        $this->voyageAIMock
+            ->expects($this->once())
+            ->method('generateTextEmbeddings')
+            ->with('mock description')
+            ->willReturn([-1, 0.5, 1]);
+
+        [$description, $embeddings] = $this->pictureService->generateDescriptionAndEmbeddings($image->get(Format::ID_PNG));
+
+        $this->assertSame('mock description', $description);
+        $this->assertEquals([-1, 0.5, 1], $embeddings);
     }
 }

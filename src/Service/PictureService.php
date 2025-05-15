@@ -14,15 +14,24 @@ use Imagine\Image\Box;
 use Imagine\Image\Format;
 use Imagine\Image\ImageInterface;
 
-use function rand;
 use function uniqid;
 
 class PictureService
 {
     public function __construct(
         private DocumentManager $dm,
+        private OpenAI $openAI,
         private VoyageAI $voyageAI,
     ) {
+    }
+
+    /** @return array{0: string, 1: list<float>} */
+    public function generateDescriptionAndEmbeddings(string $imageData): array
+    {
+        $description = $this->openAI->generateDescription($imageData);
+        $embeddings = $this->voyageAI->generateTextEmbeddings($description);
+
+        return [$description, $embeddings];
     }
 
     public function storePicture(string $filePath, string $originalFileName, string $name = ''): Face
@@ -49,8 +58,7 @@ class PictureService
         $face->name = $name;
         $face->file = $file;
         $face->resizedImage = $this->getResizedImage($image);
-        $face->embeddings = $this->voyageAI->generateEmbeddings($image->get(Format::ID_PNG));
-        $face->description = '';
+        [$face->description, $face->embeddings] = $this->generateDescriptionAndEmbeddings($image->get(Format::ID_PNG));
 
         $this->dm->persist($face);
         $this->dm->flush();
@@ -58,33 +66,24 @@ class PictureService
         return $face;
     }
 
-    /**
-     * @param float[] $embeddings1
-     * @param float[] $embeddings2
-     */
-    public function calculateSimilarity(array $embeddings1, array $embeddings2): float
-    {
-        // Placeholder logic for calculating similarity (e.g., cosine similarity)
-        return rand(0, 100) / 100; // Random similarity for now
-    }
-
-    /** @return array{picture: Face, similarity: float} */
-    public function findSimilarPictures(Face $face, float $threshold = 0.8): array
+    /** @return list<VectorSearchResult> */
+    public function findSimilarPictures(Face $face, int $limit = 10, float $threshold = 0.8): array
     {
         $builder = $this->dm->getRepository(Face::class)
             ->createAggregationBuilder()
             ->hydrate(VectorSearchResult::class);
+
         $builder
             ->addStage(new VectorSearchStage($builder))
                 ->index('faces')
                 ->path('embeddings')
-                ->numCandidates(50)
+                ->numCandidates($limit * 20)
                 ->queryVector($face->embeddings)
-                ->limit(10)
+                ->limit($limit)
             ->project()
                 ->field('_id')->expression(0)
                 ->field('face')->expression('$$ROOT')
-                ->field('similarity')->literal(rand(0, 100) / 100);
+                ->field('score')->meta('vectorSearchScore');
         $faces = $builder
             ->getAggregation()
             ->execute();

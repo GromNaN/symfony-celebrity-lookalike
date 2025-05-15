@@ -22,16 +22,32 @@ class VoyageAI
     ) {
     }
 
+    /** @return list<list<float>> */
+    public function generateTextEmbeddings(string $text): array
+    {
+        $request = [
+            'model' => 'voyage-3.5',
+            'input' => [$text],
+        ];
+
+        $response = $this->httpClient->request('POST', 'https://api.voyageai.com/v1/embeddings', [
+            'auth_bearer' => $this->apiKey,
+            'json' => $request,
+        ]);
+
+        return $this->extractEmbeddings($response);
+    }
+
     /**
      * @param string $imageData Image data as raw PNG data
      *
      * @return list<list<float>>
      */
-    public function generateEmbeddings(string $imageData, InputType $inputType = InputType::None): array
+    public function generateImageEmbeddings(string $imageData, InputType $inputType = InputType::None): array
     {
         $request = [
             'model' => 'voyage-multimodal-3',
-            'input' => [
+            'inputs' => [
                 [
                     'content' => [
                         [

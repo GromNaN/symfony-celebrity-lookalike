@@ -5,16 +5,8 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Document\Face;
-use App\Document\VectorSearchResult;
-use App\Service\VoyageAI;
-use App\VoyageAi\InputType;
-use Doctrine\ODM\MongoDB\DocumentManager;
-use Doctrine\ODM\MongoDB\Iterator\HydratingIterator;
+use App\Service\PictureService;
 use Imagine\Gd\Imagine;
-use MongoDB\Builder\Expression;
-use MongoDB\Builder\Pipeline;
-use MongoDB\Builder\Stage;
-use MongoDB\Driver\CursorInterface;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -26,55 +18,32 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class SearchCommand
 {
-    public function __construct(
-        private VoyageAI $voyageAI,
-        private DocumentManager $dm,
-    ) {
+    public function __construct(private PictureService $pictureService)
+    {
     }
 
     public function __invoke(
         #[Argument]
         string $pathToImage,
         OutputInterface $output,
+        #[Argument]
+        int $limit = 3,
     ): int {
         $output->writeln(sprintf('Searching for contributors similar to the file in: %s', $pathToImage));
 
         $image = new Imagine()->open($pathToImage);
 
-        $embeddings = $this->voyageAI->generateEmbeddings($image->get('png'), InputType::Query);
+        $face = new Face();
+        [$face->description, $face->embeddings] = $this->pictureService->generateDescriptionAndEmbeddings($image->get('png'));
 
-        $results = $this->dm->getDocumentCollection(Face::class)
-            ->aggregate($this->getSearchPipeline($embeddings));
+        $output->writeln(sprintf('Generated description: %s', $face->description));
 
-        foreach ($this->prepareIterator($results) as $result) {
-            assert($result instanceof VectorSearchResult);
+        $results = $this->pictureService->findSimilarPictures($face, $limit);
 
+        foreach ($results as $result) {
             $output->writeln(sprintf('Found contributor: %s; score: %.5f', $result->face->name, $result->score));
         }
 
         return Command::SUCCESS;
-    }
-
-    /** @param list<float> $embeddings */
-    private function getSearchPipeline(array $embeddings): Pipeline
-    {
-        return new Pipeline(
-            Stage::vectorSearch(
-                index: 'faces',
-                limit: 3,
-                path: 'embeddings',
-                queryVector: $embeddings,
-                numCandidates: 3,
-            ),
-            Stage::addFields(
-                face: Expression::variable('ROOT'),
-                score: Expression::meta('vectorSearchScore'),
-            ),
-        );
-    }
-
-    private function prepareIterator(CursorInterface $cursor): HydratingIterator
-    {
-        return new HydratingIterator($cursor, $this->dm->getUnitOfWork(), $this->dm->getClassMetadata(VectorSearchResult::class));
     }
 }
