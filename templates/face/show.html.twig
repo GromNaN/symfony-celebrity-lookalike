@@ -16,7 +16,7 @@
                 <div class="flex flex-wrap justify-center gap-4">
                     {% for similar in similar_faces %}
                         <a href="{{ path('face_show', { id: similar.face.id }) }}">
-                            <img src="{{ path('face_picture', { id: similar.face.id }) }}" alt="{{ similar.face.name }}" class="w-16 h-16 rounded shadow">
+                            <img src="{{ path('face_picture', { id: similar.face.id }) }}" alt="{{ similar.face.name }}" title="{{ similar.face.name }} - {{ similar.score|format('%.5f') }}" class="w-16 h-16 rounded shadow">
                         </a>
                     {% else %}
                         <p class="text-gray-500">No similar faces found.</p>

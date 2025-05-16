@@ -65,4 +65,7 @@ class Face
 
     #[ODM\Field(type: 'date_immutable')]
     public ?\DateTimeImmutable $expiresAt = null;
+
+    #[ODM\ReferenceOne(targetDocument: self::class)]
+    public ?Face $mostSimilar = null;
 }

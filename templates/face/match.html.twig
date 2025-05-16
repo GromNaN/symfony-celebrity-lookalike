@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="flex justify-center items-center min-h-screen bg-gray-900">
+    <div class="w-[40%] bg-gray-800 rounded-lg shadow-xl p-6 text-center">
+        <h1 class="text-3xl font-bold text-white mb-6">Likely match</h1>
+
+        <div class="grid grid-cols-2 gap-6">
+            <!-- Original Face -->
+            <div class="text-center">
+                <h2 class="text-lg font-bold text-white mb-4">Picture</h2>
+                <img src="{{ path('face_picture', { id: face.id }) }}" alt="{{ face.name }}" class="w-full rounded-lg shadow-lg">
+            </div>
+
+            <!-- Most Similar Face -->
+            <div class="text-center">
+                <h2 class="text-lg font-bold text-white mb-4">{{ most_similar_face.name }}</h2>
+                <img src="{{ path('face_picture', { id: most_similar_face.id }) }}" alt="{{ most_similar_face.name }}" class="w-full rounded-lg shadow-lg">
+            </div>
+
+            <div class="text-center">
+                <p class="mt-4 text-white text-xl font-semibold">{{ face.description|nl2br }}</p>
+            </div>
+
+            <div class="text-center">
+                <p class="mt-4 text-white text-xl font-semibold">{{ most_similar_face.description|nl2br }}</p>
+            </div>
+        </div>
+
+        <div class="grid grid-flow-row auto-rows-max gap-4" style="grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));">
+            <div class="mt-8">
+                <h2 class="text-lg text-white font-bold mb-4">All Similar Faces</h2>
+                <div class="flex flex-wrap justify-center gap-4">
+                    {% for similar in similar_faces %}
+                        <a href="{{ path('face_show', { id: similar.face.id }) }}">
+                            <img src="{{ path('face_picture', { id: similar.face.id }) }}" alt="{{ similar.face.name }}" title="{{ similar.face.name }} - {{ similar.score|format('%.5f') }}" class="w-16 h-16 rounded shadow">
+                        </a>
+                    {% else %}
+                        <p class="text-gray-500">No similar faces found.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

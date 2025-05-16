@@ -14,6 +14,9 @@ use Imagine\Image\Box;
 use Imagine\Image\Format;
 use Imagine\Image\ImageInterface;
 
+use function fclose;
+use function sprintf;
+use function stream_get_contents;
 use function uniqid;
 
 class PictureService
@@ -34,6 +37,22 @@ class PictureService
         $embeddings = $this->voyageAI->generateTextEmbeddings($description);
 
         return [$description, $embeddings];
+    }
+
+    /**
+     * Returns PNG image data for a given face
+     */
+    public function getImageData(Face $face): string
+    {
+        $pictureStream = $this->dm->getRepository(Picture::class)->openDownloadStream($face->file->id);
+
+        try {
+            $imageData = stream_get_contents($pictureStream);
+        } finally {
+            fclose($pictureStream);
+        }
+
+        return new Imagine()->load($imageData)->get(Format::ID_PNG);
     }
 
     public function storePicture(string $filePath, string $originalFileName, string $name = '', bool $temporary = false): Face
@@ -77,6 +96,26 @@ class PictureService
         $this->dm->flush();
 
         return $face;
+    }
+
+    public function findMostSimilarFace(Face $face, VectorSearchResult ...$candidates): VectorSearchResult
+    {
+        $mostSimilarIndex = $this->openAI->findMostSimilarFace(
+            $this->getImageData($face),
+            array_map(
+                fn (VectorSearchResult $similar) => $this->getImageData($similar->face),
+                $candidates,
+            ),
+        );
+
+        if (! isset($candidates[$mostSimilarIndex])) {
+            throw new \RuntimeException(sprintf('Invalid index %d returned from OpenAI', $mostSimilarIndex));
+        }
+
+        $face->mostSimilar = $candidates[$mostSimilarIndex]->face;
+        $this->dm->flush();
+
+        return $candidates[$mostSimilarIndex];
     }
 
     /** @return list<VectorSearchResult> */

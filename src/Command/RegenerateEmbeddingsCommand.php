@@ -5,22 +5,16 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Document\Face;
-use App\Document\Picture;
 use App\Service\PictureService;
 use App\Service\VoyageAI;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Repository\DocumentRepository;
-use Doctrine\ODM\MongoDB\Repository\GridFSRepository;
-use Imagine\Gd\Imagine;
-use Imagine\Image\Format;
 use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Attribute\Option;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Output\OutputInterface;
-
-use function stream_get_contents;
 
 #[AsCommand(
     name: 'app:regenerate-embeddings',
@@ -29,7 +23,6 @@ use function stream_get_contents;
 readonly class RegenerateEmbeddingsCommand
 {
     private DocumentRepository $faceRepository;
-    private GridFSRepository $pictureRepository;
 
     public function __construct(
         private PictureService $pictureService,
@@ -37,7 +30,6 @@ readonly class RegenerateEmbeddingsCommand
         private DocumentManager $dm,
     ) {
         $this->faceRepository = $this->dm->getRepository(Face::class);
-        $this->pictureRepository = $this->dm->getRepository(Picture::class);
     }
 
     public function __invoke(
@@ -70,22 +62,14 @@ readonly class RegenerateEmbeddingsCommand
 
         try {
             foreach ($query->getQuery()->execute() as $face) {
-                $pictureStream = $this->pictureRepository->openDownloadStream($face->file->id);
-
-                try {
-                    $imageData = stream_get_contents($pictureStream);
-                } finally {
-                    fclose($pictureStream);
-                }
-
-                $image = new Imagine()->load($imageData);
+                $imageData = $this->pictureService->getImageData($face);
 
                 switch ($field) {
                     case 'description':
-                        [$face->description, $face->descriptionEmbeddings] = $this->pictureService->generateDescriptionAndEmbeddings($image->get(Format::ID_PNG));
+                        [$face->description, $face->descriptionEmbeddings] = $this->pictureService->generateDescriptionAndEmbeddings($imageData);
                         break;
                     case 'image':
-                        $face->imageEmbeddings = $this->voyageAI->generateImageEmbeddings($image->get(Format::ID_PNG));
+                        $face->imageEmbeddings = $this->voyageAI->generateImageEmbeddings($imageData);
                         break;
                     default:
                         $output->writeln(sprintf('Field name must be one of "image" or "description", "%s" given.', $field));
