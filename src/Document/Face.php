@@ -16,6 +16,10 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
             'similarity' => 'euclidean',
             'type' => 'vector',
         ],
+        [
+            'type' => 'filter',
+            'path' => '_id',
+        ],
     ],
 )]
 #[ODM\SearchIndex(
@@ -26,6 +30,10 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
             'path' => 'descriptionEmbeddings',
             'similarity' => 'euclidean',
             'type' => 'vector',
+        ],
+        [
+            'type' => 'filter',
+            'path' => '_id',
         ],
     ],
 )]
