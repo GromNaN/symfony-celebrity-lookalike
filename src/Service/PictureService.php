@@ -81,7 +81,7 @@ class PictureService
     }
 
     /** @return list<VectorSearchResult> */
-    public function findSimilarPictures(Face $face, int $limit = 10, float $threshold = 0.8): array
+    public function findSimilarPictures(Face $face, int $limit = 10): array
     {
         $builder = $this->dm->getRepository(Face::class)
             ->createAggregationBuilder()
