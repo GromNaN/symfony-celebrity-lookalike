@@ -30,6 +30,10 @@ class FaceTest extends KernelTestCase
                                 'similarity' => 'euclidean',
                                 'type' => 'vector',
                             ],
+                            [
+                                'type' => 'filter',
+                                'path' => '_id',
+                            ],
                         ],
                     ],
                 ],
@@ -43,6 +47,10 @@ class FaceTest extends KernelTestCase
                                 'path' => 'descriptionEmbeddings',
                                 'similarity' => 'euclidean',
                                 'type' => 'vector',
+                            ],
+                            [
+                                'type' => 'filter',
+                                'path' => '_id',
                             ],
                         ],
                     ],
