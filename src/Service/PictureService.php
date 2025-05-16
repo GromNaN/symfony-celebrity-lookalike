@@ -15,6 +15,7 @@ use Imagine\Image\Format;
 use Imagine\Image\ImageInterface;
 
 use function fclose;
+use function sprintf;
 use function stream_get_contents;
 use function uniqid;
 
@@ -95,6 +96,26 @@ class PictureService
         $this->dm->flush();
 
         return $face;
+    }
+
+    public function findMostSimilarFace(Face $face, VectorSearchResult ...$candidates): VectorSearchResult
+    {
+        $mostSimilarIndex = $this->openAI->findMostSimilarFace(
+            $this->getImageData($face),
+            array_map(
+                fn (VectorSearchResult $similar) => $this->getImageData($similar->face),
+                $candidates,
+            ),
+        );
+
+        if (! isset($candidates[$mostSimilarIndex])) {
+            throw new \RuntimeException(sprintf('Invalid index %d returned from OpenAI', $mostSimilarIndex));
+        }
+
+        $face->mostSimilar = $candidates[$mostSimilarIndex]->face;
+        $this->dm->flush();
+
+        return $candidates[$mostSimilarIndex];
     }
 
     /** @return list<VectorSearchResult> */

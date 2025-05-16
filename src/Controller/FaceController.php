@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+use function array_slice;
+
 class FaceController extends AbstractController
 {
     #[Route('/picture/{id}', name: 'face_picture', methods: ['GET'])]
@@ -46,6 +48,26 @@ class FaceController extends AbstractController
         return $this->render('face/show.html.twig', [
             'face' => $face,
             'similar_faces' => $pictureService->findSimilarPictures($face),
+        ]);
+    }
+
+    #[Route('/match/{id}', name: 'face_show', methods: ['GET'])]
+    public function match(Face $face, PictureService $pictureService, DocumentManager $dm): Response
+    {
+        $similarPictures = $pictureService->findSimilarPictures($face);
+
+        // TODO: What if no similar pictures were found?
+
+        if ($face->mostSimilar === null) {
+            $candidates = array_slice($similarPictures, 0, 3);
+
+            $pictureService->findMostSimilarFace($face, ...$candidates);
+        }
+
+        return $this->render('face/match.html.twig', [
+            'face' => $face,
+            'most_similar_face' => $face->mostSimilar,
+            'similar_faces' => $similarPictures,
         ]);
     }
 
