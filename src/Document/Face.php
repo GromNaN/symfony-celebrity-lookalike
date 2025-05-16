@@ -18,6 +18,17 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
         ],
     ],
 )]
+#[ODM\SearchIndex(
+    name: 'descriptions',
+    fields: [
+        [
+            'numDimensions' => 1024,
+            'path' => 'descriptionEmbeddings',
+            'similarity' => 'euclidean',
+            'type' => 'vector',
+        ],
+    ],
+)]
 class Face
 {
     #[ODM\Id]
@@ -33,10 +44,17 @@ class Face
     #[ODM\Field(type: 'bin')]
     public string $resizedImage;
 
-    /** @var float[] */
+    /** @var float[] Vector generated from the image file */
+    #[ODM\Field(name: 'embeddings', type: 'collection')]
+    public ?array $imageEmbeddings = null;
+
+    /** @var float[] Vector generated from the textual description of the image */
     #[ODM\Field(type: 'collection')]
-    public ?array $embeddings = null;
+    public ?array $descriptionEmbeddings = null;
 
     #[ODM\ReferenceOne(targetDocument: Picture::class, cascade: ['persist', 'remove'])]
     public ?Picture $file = null;
+
+    #[ODM\Field(type: 'date_immutable')]
+    public ?\DateTimeImmutable $expiresAt = null;
 }

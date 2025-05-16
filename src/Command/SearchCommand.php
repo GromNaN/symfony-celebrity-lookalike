@@ -34,7 +34,7 @@ class SearchCommand
         $image = new Imagine()->open($pathToImage);
 
         $face = new Face();
-        [$face->description, $face->embeddings] = $this->pictureService->generateDescriptionAndEmbeddings($image->get('png'));
+        [$face->description, $face->descriptionEmbeddings] = $this->pictureService->generateDescriptionAndEmbeddings($image->get('png'));
 
         $output->writeln(sprintf('Generated description: %s', $face->description));
 

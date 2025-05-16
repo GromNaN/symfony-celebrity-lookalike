@@ -18,6 +18,8 @@ use function uniqid;
 
 class PictureService
 {
+    private const TTL_TEMPORARY = '+1 hour';
+
     public function __construct(
         private DocumentManager $dm,
         private OpenAI $openAI,
@@ -34,11 +36,15 @@ class PictureService
         return [$description, $embeddings];
     }
 
-    public function storePicture(string $filePath, string $originalFileName, string $name = ''): Face
+    public function storePicture(string $filePath, string $originalFileName, string $name = '', bool $temporary = false): Face
     {
-        $face = $this->checkForContributor($name);
-        if ($face) {
-            return $face;
+        if ($temporary) {
+            $name = 'temporary_' . microtime(true);
+        } else {
+            $face = $this->checkForContributor($name);
+            if ($face) {
+                return $face;
+            }
         }
 
         $file = $this->dm->getRepository(Picture::class)->uploadFromFile($filePath, $originalFileName);
@@ -55,10 +61,17 @@ class PictureService
 
         // Create a new Face document
         $face = new Face();
+        if ($temporary) {
+            $face->expiresAt = new \DateTimeImmutable(self::TTL_TEMPORARY);
+        }
+
         $face->name = $name;
         $face->file = $file;
         $face->resizedImage = $this->getResizedImage($image);
-        [$face->description, $face->embeddings] = $this->generateDescriptionAndEmbeddings($image->get(Format::ID_PNG));
+        $png = $image->get(Format::ID_PNG);
+
+        [$face->description, $face->descriptionEmbeddings] = $this->generateDescriptionAndEmbeddings($png);
+        $face->imageEmbeddings = $this->voyageAI->generateImageEmbeddings($png);
 
         $this->dm->persist($face);
         $this->dm->flush();
@@ -75,10 +88,10 @@ class PictureService
 
         $builder
             ->addStage(new VectorSearchStage($builder))
-                ->index('faces')
-                ->path('embeddings')
+                ->index('descriptions')
+                ->path('descriptionEmbeddings')
                 ->numCandidates($limit * 20)
-                ->queryVector($face->embeddings)
+                ->queryVector($face->descriptionEmbeddings)
                 ->limit($limit)
             ->project()
                 ->field('_id')->expression(0)

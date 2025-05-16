@@ -31,7 +31,11 @@ class FaceController extends AbstractController
     #[Route('/faces', name: 'face_list', methods: ['GET'])]
     public function list(DocumentManager $dm): Response
     {
-        $faces = $dm->getRepository(Face::class)->findAll();
+        $faces = $dm->getRepository(Face::class)
+            ->createQueryBuilder()
+            ->field('descriptionEmbeddings')->exists(true)
+            ->getQuery()
+            ->execute();
 
         return $this->render('face/list.html.twig', ['faces' => $faces]);
     }

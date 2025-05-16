@@ -33,6 +33,20 @@ class FaceTest extends KernelTestCase
                         ],
                     ],
                 ],
+                [
+                    'name' => 'descriptions',
+                    'type' => 'vectorSearch',
+                    'definition' => [
+                        'fields' => [
+                            [
+                                'numDimensions' => 1024,
+                                'path' => 'descriptionEmbeddings',
+                                'similarity' => 'euclidean',
+                                'type' => 'vector',
+                            ],
+                        ],
+                    ],
+                ],
             ],
             $classMetadata->searchIndexes,
         );

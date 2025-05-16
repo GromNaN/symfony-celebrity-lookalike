@@ -25,7 +25,7 @@ class VectorSearchIndexListener
         // Remove the original search index definition - ODM only supports Atlas Text Search
         $searchIndexes = array_map(
             static function (array $index) {
-                if ($index['name'] !== 'faces' || ($index['type'] ?? null) === 'vectorSearch') {
+                if (($index['type'] ?? null) === 'vectorSearch') {
                     return $index;
                 }
 
