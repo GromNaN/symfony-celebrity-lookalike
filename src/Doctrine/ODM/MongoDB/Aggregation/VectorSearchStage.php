@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Doctrine\ODM\MongoDB\Aggregation;
 
 use Doctrine\ODM\MongoDB\Aggregation\Stage;
+use Doctrine\ODM\MongoDB\Query\Expr as QueryExpr;
 
 final class VectorSearchStage extends Stage
 {
     private ?bool $exact = null;
-    /** @var array<string, mixed>|null  */
-    private ?array $filter = null;
+    /** @var array<string, mixed>|QueryExpr|null  */
+    private array|QueryExpr|null $filter = null;
     private ?string $index = null;
     private ?int $limit = null;
     private ?int $numCandidates = null;
@@ -27,7 +28,9 @@ final class VectorSearchStage extends Stage
         }
 
         if ($this->filter !== null) {
-            $stage['filter'] = $this->filter;
+            $stage['filter'] = $this->filter instanceof QueryExpr
+                ? $this->filter->getQuery()
+                : $this->filter;
         }
 
         if ($this->index !== null) {
@@ -60,8 +63,8 @@ final class VectorSearchStage extends Stage
         return $this;
     }
 
-    /** @param array<string, mixed> $filter */
-    public function filter(array $filter): self
+    /** @param array<string, mixed>|QueryExpr $filter */
+    public function filter(array|QueryExpr $filter): self
     {
         $this->filter = $filter;
 

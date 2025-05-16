@@ -13,7 +13,6 @@ use Imagine\Gd\Imagine;
 use Imagine\Image\Box;
 use Imagine\Image\Format;
 use Imagine\Image\ImageInterface;
-use MongoDB\BSON\ObjectId;
 
 use function uniqid;
 
@@ -87,12 +86,15 @@ class PictureService
             ->createAggregationBuilder()
             ->hydrate(VectorSearchResult::class);
 
+        $filter = $builder->matchExpr()
+            ->field('id')
+            ->notEqual($face->id);
+
         $builder
             ->addStage(new VectorSearchStage($builder))
                 ->index('descriptions')
                 ->path('descriptionEmbeddings')
-                // TODO: This should accept a sub-expression
-                ->filter(['_id' => ['$ne' => new ObjectId($face->id)]])
+                ->filter($filter)
                 ->numCandidates($limit * 20)
                 ->queryVector($face->descriptionEmbeddings)
                 ->limit($limit)
