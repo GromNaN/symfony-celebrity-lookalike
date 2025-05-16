@@ -14,6 +14,8 @@ use Imagine\Image\Box;
 use Imagine\Image\Format;
 use Imagine\Image\ImageInterface;
 
+use function fclose;
+use function stream_get_contents;
 use function uniqid;
 
 class PictureService
@@ -34,6 +36,22 @@ class PictureService
         $embeddings = $this->voyageAI->generateTextEmbeddings($description);
 
         return [$description, $embeddings];
+    }
+
+    /**
+     * Returns PNG image data for a given face
+     */
+    public function getImageData(Face $face): string
+    {
+        $pictureStream = $this->dm->getRepository(Picture::class)->openDownloadStream($face->file->id);
+
+        try {
+            $imageData = stream_get_contents($pictureStream);
+        } finally {
+            fclose($pictureStream);
+        }
+
+        return new Imagine()->load($imageData)->get(Format::ID_PNG);
     }
 
     public function storePicture(string $filePath, string $originalFileName, string $name = '', bool $temporary = false): Face

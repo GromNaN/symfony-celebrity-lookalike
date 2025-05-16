@@ -7,8 +7,6 @@ namespace App\Service;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-use function base64_encode;
-
 class OpenAI
 {
     private const PROMPT = <<<'PROMPT'
@@ -44,10 +42,7 @@ class OpenAI
                             'type' => 'input_text',
                             'text' => self::PROMPT,
                         ],
-                        [
-                            'type' => 'input_image',
-                            'image_url' => 'data:image/png;base64,' . base64_encode($imageData),
-                        ],
+                        $this->getImageDataPrompt($imageData),
                     ],
                 ],
             ],
